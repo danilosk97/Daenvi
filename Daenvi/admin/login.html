@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin • Daenvi</title>
+  <link rel="stylesheet" href="/admin/assets/admin.css"/>
+</head>
+<body>
+  <div class="bg"></div>
+
+  <main class="wrap">
+    <div class="card">
+      <div class="brand">
+        <span class="dot"></span>
+        <div>
+          <div class="name">Daenvi</div>
+          <div class="tag">Painel Admin</div>
+        </div>
+      </div>
+
+      <h1>Acesso</h1>
+      <p class="muted">Digite o PIN para entrar no painel.</p>
+
+      <form id="loginForm" class="form">
+        <label>PIN</label>
+        <input id="pin" type="password" inputmode="numeric" placeholder="Ex: 1234" minlength="4" required />
+
+        <div id="msg" class="msg"></div>
+
+        <button class="btn primary" type="submit">Entrar</button>
+        <button class="btn ghost" type="button" id="btnSetup">Definir/Alterar PIN</button>
+      </form>
+
+      <div class="foot">
+        <span class="muted">Dica: use 6 dígitos pra ficar mais forte.</span>
+      </div>
+    </div>
+  </main>
+
+  <script src="/admin/assets/admin-login.js"></script>
+</body>
+</html>

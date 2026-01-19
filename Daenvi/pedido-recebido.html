@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pedido recebido • Daenvi</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Tech Store</span>
+      </a>
+
+      <div class="actions">
+        <a class="cart-btn" href="carrinho.html">
+          <span>🛒</span>
+          <span class="badge" id="cartCount">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <div class="card" style="max-width:900px;margin:0 auto;">
+        <h2 style="margin-top:0;">Pedido recebido ✅</h2>
+        <p class="muted" style="margin-top:6px;">
+          Seu pedido foi registrado. Guarde o número abaixo para acompanhar.
+        </p>
+
+        <div class="card" style="margin-top:14px;background:rgba(255,255,255,.02);">
+          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+            <div>
+              <div class="muted" style="font-size:12px;">ID do pedido</div>
+              <div style="font-size:22px;font-weight:900;" id="pedidoId">—</div>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <button class="btn ghost" id="btnCopy" type="button">Copiar ID</button>
+              <a class="btn primary" id="btnTrack" href="acompanhar.html">Acompanhar pedido</a>
+              <a class="btn ghost" href="index.html">Voltar pra loja</a>
+            </div>
+          </div>
+
+          <div class="line" style="margin:14px 0;"></div>
+
+          <div class="muted" style="line-height:1.5;">
+            <b>Status:</b> <span id="statusTxt">NOVO</span><br/>
+            <b>Próximos passos:</b> vamos confirmar disponibilidade com fornecedor e entrar em contato.
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:14px;background:rgba(255,255,255,.02);">
+          <div style="font-weight:900;margin-bottom:8px;">Resumo (se disponível)</div>
+          <div id="resumoBox" class="muted">Carregando...</div>
+        </div>
+
+        <p class="muted small" style="margin-top:12px;">
+          Dica: tire um print desta tela para não perder o ID.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/pedido-recebido.js"></script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "p1",
+    "nome": "Fone Bluetooth TWS Pro",
+    "preco": 89.9,
+    "categoria": "Eletrônicos",
+    "imagem": "https://images.unsplash.com/photo-1585386959984-a41552231693?auto=format&fit=crop&w=1200&q=60",
+    "descricao": "Fone sem fio com estojo carregador, som potente e design moderno. Ideal pra treino, trabalho e dia a dia.",
+    "fornecedor_link": "https://exemplo.com/produto/fone-tws"
+  },
+  {
+    "id": "p2",
+    "nome": "Lâmpada LED Inteligente WiFi",
+    "preco": 59.9,
+    "categoria": "Casa",
+    "imagem": "https://images.unsplash.com/photo-1518441902117-f0a4b4ed88f5?auto=format&fit=crop&w=1200&q=60",
+    "descricao": "Controle pelo celular, ajuste de cores e timer. Visual tech e economia de energia.",
+    "fornecedor_link": "https://exemplo.com/produto/lampada-led"
+  },
+  {
+    "id": "p3",
+    "nome": "Carregador Turbo 20W USB-C",
+    "preco": 49.9,
+    "categoria": "Acessórios",
+    "imagem": "https://images.unsplash.com/photo-1580983561371-7f36d8cbf6a2?auto=format&fit=crop&w=1200&q=60",
+    "descricao": "Carregamento rápido, compacto e seguro. Ideal pra celulares e dispositivos compatíveis.",
+    "fornecedor_link": "https://exemplo.com/produto/carregador-20w"
+  },
+  {
+    "id": "p4",
+    "nome": "Mini Processador de Alimentos",
+    "preco": 79.9,
+    "categoria": "Cozinha",
+    "imagem": "https://images.unsplash.com/photo-1601075441328-11f2c9f9ec0d?auto=format&fit=crop&w=1200&q=60",
+    "descricao": "Compacto e prático pra alho, cebola e temperos. Perfeito pra cozinha do dia a dia.",
+    "fornecedor_link": "https://exemplo.com/produto/processador"
+  }
+]
