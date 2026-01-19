@@ -1,5 +1,4 @@
 // Daenvi/assets/js/produto.js
-
 const CART_KEY = "daenvi_cart";
 
 function $(id){ return document.getElementById(id); }
@@ -82,7 +81,7 @@ function renderProduct(p){
 
         <div class="card" style="margin-top:14px;background:rgba(255,255,255,.02);">
           <div class="muted" style="line-height:1.5;">
-            <b>Como funciona:</b> você finaliza o pedido, o sistema gera um ID e a equipe confirma disponibilidade e envio.
+            <b>Como funciona:</b> você finaliza o pedido, recebe um ID e a equipe confirma disponibilidade e envio.
           </div>
         </div>
       </div>
@@ -116,17 +115,6 @@ function renderProduct(p){
     }
 
     renderProduct(p);
-
-    // Busca (opcional): leva pra home e filtra
-    const search = $("searchInput");
-    if(search){
-      search.addEventListener("keydown", (e) => {
-        if(e.key === "Enter"){
-          const q = search.value.trim();
-          if(q) window.location.href = `index.html#produtos`;
-        }
-      });
-    }
   }catch(err){
     console.error(err);
     $("productPage").innerHTML = `<div class="muted">Erro ao carregar produto.</div>`;

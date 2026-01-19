@@ -1,5 +1,4 @@
 // Daenvi/assets/js/carrinho.js
-
 const CART_KEY = "daenvi_cart";
 
 function $(id){ return document.getElementById(id); }
@@ -35,6 +34,7 @@ function renderCart(){
 
   updateCartBadge();
 
+  // Se a página não tiver cartList (ex: produto.html), só atualiza badge e sai
   if(!list) return;
 
   if(cart.length === 0){
@@ -86,9 +86,8 @@ function dec(id){
   if(idx < 0) return;
 
   cart[idx].qtd -= 1;
-  if(cart[idx].qtd <= 0){
-    cart.splice(idx, 1);
-  }
+  if(cart[idx].qtd <= 0) cart.splice(idx, 1);
+
   saveCart(cart);
   renderCart();
 }

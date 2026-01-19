@@ -1,5 +1,4 @@
 // Daenvi/assets/js/app.js
-
 const CART_KEY = "daenvi_cart";
 
 function $(id){ return document.getElementById(id); }
@@ -43,20 +42,16 @@ function addToCart(product){
   updateCartBadge();
 }
 
-function normalizeCategory(cat){
-  return (cat || "").trim();
-}
-
 function uniqueCategories(list){
-  const set = new Set(list.map(p => normalizeCategory(p.categoria)).filter(Boolean));
-  return Array.from(set).sort((a,b)=> a.localeCompare(b, "pt-BR"));
+  const set = new Set(list.map(p => (p.categoria || "").trim()).filter(Boolean));
+  return Array.from(set).sort((a,b)=> a.localeCompare(b,"pt-BR"));
 }
 
 function sortProducts(list, mode){
   const arr = [...list];
   if(mode === "price_asc") arr.sort((a,b)=> (a.preco||0) - (b.preco||0));
   if(mode === "price_desc") arr.sort((a,b)=> (b.preco||0) - (a.preco||0));
-  if(mode === "name_asc") arr.sort((a,b)=> String(a.nome||"").localeCompare(String(b.nome||""), "pt-BR"));
+  if(mode === "name_asc") arr.sort((a,b)=> String(a.nome||"").localeCompare(String(b.nome||""),"pt-BR"));
   return arr;
 }
 
@@ -78,7 +73,6 @@ async function loadProducts(){
 function renderProducts(list){
   const grid = $("productsGrid");
   const empty = $("emptyState");
-
   if(!grid) return;
 
   if(list.length === 0){
@@ -86,7 +80,6 @@ function renderProducts(list){
     if(empty) empty.style.display = "block";
     return;
   }
-
   if(empty) empty.style.display = "none";
 
   grid.innerHTML = list.map(p => `
@@ -105,7 +98,6 @@ function renderProducts(list){
     </article>
   `).join("");
 
-  // Event delegation
   grid.onclick = (e) => {
     const btn = e.target.closest("[data-add]");
     if(!btn) return;
@@ -115,7 +107,6 @@ function renderProducts(list){
     if(!prod) return;
 
     addToCart(prod);
-
     btn.textContent = "Adicionado ✓";
     setTimeout(() => btn.textContent = "Adicionar", 800);
   };
