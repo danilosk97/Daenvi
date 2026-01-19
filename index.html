@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daenvi • Tech Store</title>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Tech Store</span>
+      </a>
+
+      <div class="actions">
+        <a class="cart-btn" href="carrinho.html" title="Carrinho">
+          <span>🛒</span>
+          <span class="badge" id="cartCount">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-left">
+        <h1>Daenvi Tech Store</h1>
+        <p class="muted">
+          Eletrônicos, utilidades e acessórios selecionados — com visual de loja grande e compra simples.
+        </p>
+
+        <div class="hero-actions">
+          <a class="btn primary" href="#produtos">Ver produtos</a>
+          <a class="btn ghost" href="carrinho.html">Ir pro carrinho</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-title">Compra rápida</div>
+          <div class="muted">Checkout direto, com dados completos de entrega e registro do pedido.</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-card-title">Acompanhar pedido</div>
+          <div class="muted">Página de confirmação e acompanhamento com ID do pedido.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUTOS -->
+    <section class="section" id="produtos">
+      <div class="section-header">
+        <h2>Produtos</h2>
+        <p>Escolha um produto e adicione ao carrinho.</p>
+      </div>
+
+      <div class="toolbar">
+        <input id="search" class="search" placeholder="Buscar produto..." />
+        <select id="category" class="search">
+          <option value="all">Todas categorias</option>
+        </select>
+        <select id="sort" class="search">
+          <option value="relevance">Relevância</option>
+          <option value="price_asc">Menor preço</option>
+          <option value="price_desc">Maior preço</option>
+          <option value="name_asc">Nome A-Z</option>
+        </select>
+      </div>
+
+      <div id="productsGrid" class="grid-products"></div>
+      <div id="emptyState" class="muted" style="display:none; padding:14px 0;">
+        Nenhum produto encontrado.
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="muted">
+        © <span id="year"></span> Daenvi • Loja demonstrativa (fase inicial).
+      </div>
+    </footer>
+  </main>
+
+  <script src="assets/js/app.js"></script>
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

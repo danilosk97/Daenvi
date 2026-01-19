@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carrinho • Daenvi</title>
+  <link rel="stylesheet" href="assets/css/styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Tech Store</span>
+      </a>
+
+      <div class="actions">
+        <a class="cart-btn" href="carrinho.html" title="Carrinho">
+          <span>🛒</span>
+          <span class="badge" id="cartCount">0</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>Seu carrinho</h2>
+        <p>Revise os itens antes de finalizar.</p>
+      </div>
+
+      <!-- Mensagem carrinho vazio -->
+      <div id="cartEmpty" class="card" style="display:none;">
+        <p class="muted" style="margin:0;">Seu carrinho está vazio.</p>
+        <div style="margin-top:12px;">
+          <a class="btn primary" href="index.html#produtos">Ver produtos</a>
+        </div>
+      </div>
+
+      <!-- Lista de itens -->
+      <div id="cartList" class="cart-list"></div>
+
+      <!-- Resumo -->
+      <div class="card" style="margin-top:14px;">
+        <div class="summary-row total">
+          <span>Total</span>
+          <strong id="cartTotal">R$ 0,00</strong>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+          <a class="btn ghost" href="index.html#produtos">Continuar comprando</a>
+          <a class="btn primary" href="checkout.html">Finalizar pedido</a>
+        </div>
+
+        <p class="muted small" style="margin-top:10px;">
+          * Nesta fase, o pedido é registrado no site e você recebe um ID para acompanhar.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/carrinho.js"></script>
+</body>
+</html>
