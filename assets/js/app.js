@@ -65,9 +65,18 @@ async function loadProducts(){
     nome: String(p.nome || "").trim(),
     categoria: String(p.categoria || "").trim(),
     preco: Number(p.preco) || 0,
+    preco_antigo: p.preco_antigo != null ? Number(p.preco_antigo) : null,
+    selo: String(p.selo || "").trim(), // OFERTA / TOP / NOVO etc
+    tags: Array.isArray(p.tags) ? p.tags.slice(0,3) : [],
     imagem: String(p.imagem || "").trim(),
     descricao: String(p.descricao || "").trim()
   })).filter(p => p.id && p.nome);
+}
+
+function calcDiscount(preco, antigo){
+  if(!antigo || antigo <= preco) return null;
+  const pct = Math.round((1 - (preco/antigo)) * 100);
+  return pct > 0 ? pct : null;
 }
 
 function renderProducts(list){
@@ -82,27 +91,40 @@ function renderProducts(list){
   }
   if(empty) empty.style.display = "none";
 
-  grid.innerHTML = list.map(p => `
-    <article class="product-card">
-      <a class="product-img" href="produto.html?id=${encodeURIComponent(p.id)}" title="${p.nome}">
-        <img src="${p.imagem}" alt="${p.nome}" loading="lazy"/>
-      </a>
+  grid.innerHTML = list.map(p => {
+    const pct = calcDiscount(p.preco, p.preco_antigo);
+    const badge = p.selo ? `<span class="p-badge">${p.selo}</span>` : (pct ? `<span class="p-badge">-${pct}%</span>` : "");
+    const old = (p.preco_antigo && p.preco_antigo > p.preco) ? `<span class="p-old">${money(p.preco_antigo)}</span>` : "";
+    const chips = (p.tags || []).map(t => `<span class="p-chip">${t}</span>`).join("");
 
-      <div class="product-body">
-        <div class="product-title">${p.nome}</div>
+    return `
+      <article class="product-card">
+        <a class="product-img" href="produto.html?id=${encodeURIComponent(p.id)}" title="${p.nome}">
+          ${badge}
+          <img src="${p.imagem}" alt="${p.nome}" loading="lazy"/>
+        </a>
 
-        <div class="product-meta">
-          <span class="kicker">${p.categoria || "Geral"}</span>
-          <span class="price">${money(p.preco)}</span>
+        <div class="product-body">
+          <div class="product-title">${p.nome}</div>
+
+          <div class="product-meta">
+            <span class="kicker">${p.categoria || "Geral"}</span>
+            <span class="price">
+              ${old}
+              ${money(p.preco)}
+            </span>
+          </div>
+
+          ${chips ? `<div class="p-chips">${chips}</div>` : ""}
+
+          <div class="product-actions">
+            <button class="btn primary" data-add="${p.id}" type="button">Adicionar</button>
+            <a class="btn ghost" href="produto.html?id=${encodeURIComponent(p.id)}">Ver</a>
+          </div>
         </div>
-
-        <div class="product-actions">
-          <button class="btn primary" data-add="${p.id}" type="button">Adicionar</button>
-          <a class="btn ghost" href="produto.html?id=${encodeURIComponent(p.id)}">Ver</a>
-        </div>
-      </div>
-    </article>
-  `).join("");
+      </article>
+    `;
+  }).join("");
 
   grid.onclick = (e) => {
     const btn = e.target.closest("[data-add]");
