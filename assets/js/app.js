@@ -83,16 +83,22 @@ function renderProducts(list){
   if(empty) empty.style.display = "none";
 
   grid.innerHTML = list.map(p => `
-    <article class="p-card">
-      <a class="p-media" href="produto.html?id=${encodeURIComponent(p.id)}">
+    <article class="product-card">
+      <a class="product-img" href="produto.html?id=${encodeURIComponent(p.id)}" title="${p.nome}">
         <img src="${p.imagem}" alt="${p.nome}" loading="lazy"/>
       </a>
-      <div class="p-body">
-        <div class="p-title">${p.nome}</div>
-        <div class="p-meta muted">${p.categoria || "Geral"}</div>
-        <div class="p-bottom">
-          <div class="p-price">${money(p.preco)}</div>
-          <button class="btn small primary" data-add="${p.id}" type="button">Adicionar</button>
+
+      <div class="product-body">
+        <div class="product-title">${p.nome}</div>
+
+        <div class="product-meta">
+          <span class="kicker">${p.categoria || "Geral"}</span>
+          <span class="price">${money(p.preco)}</span>
+        </div>
+
+        <div class="product-actions">
+          <button class="btn primary" data-add="${p.id}" type="button">Adicionar</button>
+          <a class="btn ghost" href="produto.html?id=${encodeURIComponent(p.id)}">Ver</a>
         </div>
       </div>
     </article>

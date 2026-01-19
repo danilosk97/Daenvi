@@ -15,6 +15,10 @@
         <span class="brand-tag">Tech Store</span>
       </a>
 
+      <div class="searchbox">
+        <input id="search" type="text" placeholder="Buscar produto..." />
+      </div>
+
       <div class="actions">
         <a class="cart-btn" href="carrinho.html" title="Carrinho">
           <span>🛒</span>
@@ -25,45 +29,84 @@
   </header>
 
   <main class="container">
-    <!-- HERO -->
     <section class="hero">
       <div class="hero-left">
         <h1>Daenvi Tech Store</h1>
-        <p class="muted">
+        <p>
           Eletrônicos, utilidades e acessórios selecionados — visual de loja grande, compra simples e rápida.
         </p>
 
-        <div class="hero-actions">
+        <div class="hero-cta">
           <a class="btn primary" href="#produtos">Ver produtos</a>
           <a class="btn ghost" href="carrinho.html">Ir pro carrinho</a>
+          <a class="btn ghost" href="acompanhar.html">Acompanhar pedido</a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat">
+            <div class="stat-title">Pedido</div>
+            <div class="stat-value">Registrado no site</div>
+          </div>
+          <div class="stat">
+            <div class="stat-title">Checkout</div>
+            <div class="stat-value">Dados completos</div>
+          </div>
+          <div class="stat">
+            <div class="stat-title">Status</div>
+            <div class="stat-value">Acompanhe por ID</div>
+          </div>
         </div>
       </div>
 
       <div class="hero-right">
         <div class="hero-card">
-          <div class="hero-card-title">Pedido registrado</div>
-          <div class="muted">Você finaliza e recebe um ID para acompanhar.</div>
-        </div>
-        <div class="hero-card">
-          <div class="hero-card-title">Checkout completo</div>
-          <div class="muted">Endereço, CPF, contato e forma de pagamento.</div>
+          <div class="hero-card-top">
+            <span class="chip">Tech</span>
+            <span class="chip chip2">Utilidades</span>
+            <span class="chip">Acessórios</span>
+          </div>
+
+          <div class="hero-preview">
+            <div class="glow"></div>
+            <div class="preview-box">
+              <div class="preview-title">Catálogo organizado</div>
+              <div class="preview-sub">Produtos com foto, preço e compra rápida.</div>
+
+              <div class="preview-bars">
+                <div class="bar"></div>
+                <div class="bar small"></div>
+                <div class="bar"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-card-bottom">
+            <div class="mini">
+              <div class="mini-title">Pedido recebido ✅</div>
+              <div class="mini-sub">Tela de confirmação com ID</div>
+            </div>
+            <div class="mini">
+              <div class="mini-title">Carrinho</div>
+              <div class="mini-sub">Editar itens e finalizar</div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- PRODUTOS -->
     <section class="section" id="produtos">
       <div class="section-header">
         <h2>Produtos</h2>
         <p>Escolha um produto e adicione ao carrinho.</p>
       </div>
 
-      <div class="toolbar">
-        <input id="search" class="search" placeholder="Buscar produto..." />
-        <select id="category" class="search">
+      <!-- Filtro de categoria e ordenação (simples, usando seu estilo) -->
+      <div class="category-row">
+        <select id="category" class="cat" style="color: var(--text);">
           <option value="all">Todas categorias</option>
         </select>
-        <select id="sort" class="search">
+
+        <select id="sort" class="cat" style="color: var(--text);">
           <option value="relevance">Relevância</option>
           <option value="price_asc">Menor preço</option>
           <option value="price_desc">Maior preço</option>
@@ -71,22 +114,38 @@
         </select>
       </div>
 
-      <div id="productsGrid" class="grid-products"></div>
+      <div id="productsGrid" class="grid"></div>
+
       <div id="emptyState" class="muted" style="display:none; padding:14px 0;">
         Nenhum produto encontrado.
       </div>
     </section>
 
     <footer class="footer">
-      <div class="muted">
-        © <span id="year"></span> Daenvi • Loja em fase inicial.
+      <div class="container footer-grid">
+        <div>
+          <div class="brand small">
+            <span class="brand-dot"></span>
+            <span class="brand-name">Daenvi</span>
+          </div>
+          <p class="muted">Loja em fase inicial — pedidos registrados no site com ID.</p>
+        </div>
+
+        <div>
+          <div class="footer-title">Navegação</div>
+          <a class="footer-link" href="#produtos">Produtos</a>
+          <a class="footer-link" href="carrinho.html">Carrinho</a>
+          <a class="footer-link" href="checkout.html">Checkout</a>
+        </div>
+
+        <div>
+          <div class="footer-title">Suporte</div>
+          <span class="muted">Canal de suporte (fase 1)</span>
+        </div>
       </div>
     </footer>
   </main>
 
   <script src="assets/js/app.js"></script>
-  <script>
-    document.getElementById("year").textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
