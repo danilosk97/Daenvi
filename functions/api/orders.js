@@ -3,7 +3,7 @@ export async function onRequest(context) {
   const { request } = context;
 
   // ====== CONFIG ======
-  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx6z6hD9iORhK6E9MARxKopbysGVaunBZUYGXv5beBPgHg4RiHcEmdP9JNPkCnrwHTj/exec";
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxeueroFgMjm5pFh01Aj55tkF8EvOZCaktQaPjjdetcx23JaOHRMYGxXCK_i_vFDKsb/exec";
 
   // CORS (agora liberamos pro seu próprio site)
   const corsHeaders = {
