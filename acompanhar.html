@@ -15,8 +15,12 @@
         <span class="brand-tag">Tech Store</span>
       </a>
 
+      <div class="searchbox">
+        <input type="text" placeholder="Digite o ID do pedido para acompanhar" disabled />
+      </div>
+
       <div class="actions">
-        <a class="cart-btn" href="carrinho.html">
+        <a class="cart-btn" href="carrinho.html" title="Carrinho">
           <span>🛒</span>
           <span class="badge" id="cartCount">0</span>
         </a>
@@ -26,59 +30,53 @@
 
   <main class="container">
     <section class="section">
-      <div class="card" style="max-width:900px;margin:0 auto;">
-        <h2 style="margin-top:0;">Acompanhar pedido</h2>
-        <p class="muted" style="margin-top:6px;">
-          Cole o ID do pedido (ex: PED-1700000000000).
-        </p>
+      <div class="section-header">
+        <h2>Acompanhar pedido</h2>
+        <p>Digite o ID que foi gerado no checkout.</p>
+      </div>
 
-        <div class="card" style="background:rgba(255,255,255,.02);">
-          <form id="trackForm" class="form" style="gap:10px;">
+      <div class="card">
+        <div class="form-row">
+          <div class="field">
             <label>ID do pedido</label>
-            <input id="trackId" placeholder="PED-..." required />
-
-            <div style="display:flex;gap:10px;flex-wrap:wrap;">
-              <button class="btn primary" type="submit">Buscar</button>
-              <button class="btn ghost" type="button" id="btnPaste">Colar</button>
-              <a class="btn ghost" href="index.html">Voltar pra loja</a>
-            </div>
-          </form>
+            <input id="trackId" type="text" placeholder="Ex: DVK2A9..." />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <button class="btn primary" id="btnTrack" type="button">Buscar</button>
+          </div>
         </div>
 
-        <div class="card" id="resultBox" style="margin-top:14px;background:rgba(255,255,255,.02);display:none;">
-          <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;">
+        <div id="trackMsg" class="msg"></div>
+
+        <div id="trackResult" class="card" style="display:none; margin-top:14px;">
+          <div style="display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;">
             <div>
-              <div class="muted" style="font-size:12px;">Pedido</div>
-              <div style="font-size:20px;font-weight:900;" id="rId">—</div>
+              <div class="muted small">Pedido</div>
+              <div style="font-weight:900; font-size:18px;" id="rId">—</div>
+              <div class="muted small" style="margin-top:6px;">Data/Hora: <span id="rDate">—</span></div>
             </div>
-            <div class="pill" id="rStatus">NOVO</div>
+            <div>
+              <div class="muted small">Status</div>
+              <div style="font-weight:900; font-size:18px;" id="rStatus">—</div>
+            </div>
           </div>
 
-          <div class="line" style="margin:14px 0;"></div>
+          <hr class="line"/>
 
-          <div class="muted" id="rMsg" style="line-height:1.5;">
-            Estamos analisando e entraremos em contato.
-          </div>
+          <div class="muted small">Itens</div>
+          <div style="margin-top:8px; font-weight:700;" id="rItems">—</div>
 
-          <div class="card" style="margin-top:14px;background:rgba(255,255,255,.02);">
-            <div style="font-weight:900;margin-bottom:8px;">Detalhes (se disponível)</div>
-            <div id="rDetails" class="muted">—</div>
-          </div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-            <button class="btn ghost" type="button" id="btnCopyId">Copiar ID</button>
-            <a class="btn ghost" href="pedido-recebido.html" id="btnBackReceived">Voltar</a>
+          <div style="margin-top:10px;">
+            <span class="muted small">Total:</span>
+            <span style="font-weight:900;" id="rTotal">—</span>
           </div>
         </div>
-
-        <p class="muted small" style="margin-top:12px;">
-          Observação: nesta versão free, o acompanhamento detalhado aparece quando o pedido foi feito neste mesmo dispositivo.
-          Os pedidos reais ficam registrados no sistema (Netlify Forms) para você atender.
-        </p>
       </div>
     </section>
   </main>
 
+  <script src="assets/js/carrinho.js"></script>
   <script src="assets/js/acompanhar.js"></script>
 </body>
 </html>
