@@ -2,6 +2,35 @@
 const CART_KEY = "daenvi_cart";
 const ORDERS_KEY = "daenvi_orders";
 
+// ✅ ACTION (você já mandou)
+const GOOGLE_FORM_ACTION =
+  "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfJdVNb9KeNiB7a5otVfz952SmpHY4-TFW0pfXxLHe7Y5U2Lw/formResponse";
+
+/**
+ * ✅ Mapeamento pelos entry.xxxxx que você mandou.
+ * Observação importante:
+ * - Pix apareceu em entry.638609560 => isso é o "Pagamento"
+ * - Itens/Total podem variar conforme a ordem real do seu formulário.
+ * Se cair em coluna errada na planilha, é só trocar o entry daquele campo.
+ */
+const ENTRY = {
+  orderId: "entry.1855484752",
+  dateTime: "entry.922196235",
+  nome: "entry.1230654357",
+  cpf: "entry.76616706",
+  whatsapp: "entry.1590058310",
+  cep: "entry.2070484836",
+  endereco: "entry.1788536542",
+  numero: "entry.101360856",
+  complemento: "entry.1856258826",
+  bairro: "entry.1714075075",
+  cidade: "entry.168789408",
+  estado: "entry.447286208",
+  pagamento: "entry.638609560",
+  itens: "entry.821897272",
+  total: "entry.393353290"
+};
+
 function $(id){ return document.getElementById(id); }
 
 function money(v){
@@ -97,8 +126,32 @@ function validateForm(d){
   return null;
 }
 
-function buildItensText(cart){
-  return cart.map(i => `${i.qtd}x ${i.nome} (${money(i.preco)})`).join(" | ");
+function buildItensMultiline(cart){
+  return cart.map(i => `${i.qtd}x ${i.nome} — ${money(i.preco)}`).join("\n");
+}
+
+async function sendToGoogleForms(payload){
+  const fd = new FormData();
+
+  fd.append(ENTRY.orderId, payload.orderId);
+  fd.append(ENTRY.dateTime, payload.dateTime);
+  fd.append(ENTRY.nome, payload.nome);
+  fd.append(ENTRY.cpf, payload.cpf);
+  fd.append(ENTRY.whatsapp, payload.whatsapp);
+  fd.append(ENTRY.cep, payload.cep);
+  fd.append(ENTRY.endereco, payload.endereco);
+  fd.append(ENTRY.numero, payload.numero);
+  fd.append(ENTRY.complemento, payload.complemento);
+  fd.append(ENTRY.bairro, payload.bairro);
+  fd.append(ENTRY.cidade, payload.cidade);
+  fd.append(ENTRY.estado, payload.estado);
+
+  fd.append(ENTRY.pagamento, payload.pagamento);
+  fd.append(ENTRY.itens, payload.itens);
+  fd.append(ENTRY.total, payload.total);
+
+  // no-cors: envia sem travar (o Google não libera resposta CORS)
+  await fetch(GOOGLE_FORM_ACTION, { method: "POST", mode: "no-cors", body: fd });
 }
 
 async function finalizarPedido(){
@@ -119,7 +172,7 @@ async function finalizarPedido(){
 
   const orderId = genId();
   const createdAt = nowStr();
-  const total = calcTotal(cart);
+  const totalNum = calcTotal(cart);
 
   const pedido = {
     id: orderId,
@@ -127,17 +180,41 @@ async function finalizarPedido(){
     status: "Recebido",
     cliente: data,
     itens: cart,
-    total: total,
-    itensResumo: buildItensText(cart)
+    total: totalNum,
+    itensResumo: buildItensMultiline(cart).replace(/\n/g, " | ")
   };
 
+  // 1) salva local (acompanhar pedido continua funcionando)
   const orders = getOrders();
   orders.unshift(pedido);
   saveOrders(orders);
 
-  // limpa carrinho após registrar pedido
-  saveCart([]);
+  // 2) envia pro Google Forms (cai na planilha)
+  try{
+    await sendToGoogleForms({
+      orderId,
+      dateTime: createdAt,
+      nome: data.nome,
+      cpf: data.cpf,
+      whatsapp: data.whatsapp,
+      cep: data.cep,
+      endereco: data.endereco,
+      numero: data.numero,
+      complemento: data.complemento,
+      bairro: data.bairro,
+      cidade: data.cidade,
+      estado: data.estado,
+      pagamento: data.pagamento,
+      itens: buildItensMultiline(cart),
+      total: money(totalNum)
+    });
+  }catch(e){
+    console.warn("Falha ao enviar pro Google Forms:", e);
+    // Mesmo se falhar o envio, não quebra o fluxo pro cliente
+  }
 
+  // 3) limpa carrinho e vai pra tela de sucesso
+  saveCart([]);
   showMsg("ok", `Pedido enviado com sucesso! ID: ${orderId}`);
 
   setTimeout(() => {
