@@ -148,7 +148,7 @@ async function saveStatus(orderId){
 (function init(){
   // já preenche com sua API pra facilitar
   const cfg = loadCfg();
-  $("apiUrl").value = cfg.apiUrl || "https://script.google.com/macros/s/AKfycbx6z6hD9iORhK6E9MARxKopbysGVaunBZUYGXv5beBPgHg4RiHcEmdP9JNPkCnrwHTj/exec";
+  $("apiUrl").value = cfg.apiUrl || "/api/orders";
   $("adminKey").value = cfg.key || "";
 
   $("btnLogin").addEventListener("click", () => {

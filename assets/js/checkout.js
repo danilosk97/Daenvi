@@ -3,7 +3,7 @@ const CART_KEY = "daenvi_cart";
 const ORDERS_KEY = "daenvi_orders";
 
 // ✅ API do Apps Script (a sua)
-const DAENVI_API_URL = "https://script.google.com/macros/s/AKfycbx6z6hD9iORhK6E9MARxKopbysGVaunBZUYGXv5beBPgHg4RiHcEmdP9JNPkCnrwHTj/exec";
+const DAENVI_API_URL = "/api/orders";
 
 // ✅ Chave para o checkout enviar pedidos (igual no Code.gs)
 const DAENVI_PUBLIC_WRITE_KEY = "DAENVI_PEDIDO_2026";
