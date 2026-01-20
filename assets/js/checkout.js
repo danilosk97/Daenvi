@@ -148,25 +148,57 @@ function buildItensMultiline(cart){
   return cart.map(i => `${i.qtd}x ${i.nome} — ${money(i.preco)}`).join("\n");
 }
 
-async function sendToGoogleForms(payload){
-  const fd = new FormData();
-  fd.append(ENTRY.orderId, payload.orderId);
-  fd.append(ENTRY.dateTime, payload.dateTime);
-  fd.append(ENTRY.nome, payload.nome);
-  fd.append(ENTRY.cpf, payload.cpf);
-  fd.append(ENTRY.whatsapp, payload.whatsapp);
-  fd.append(ENTRY.cep, payload.cep);
-  fd.append(ENTRY.endereco, payload.endereco);
-  fd.append(ENTRY.numero, payload.numero);
-  fd.append(ENTRY.complemento, payload.complemento);
-  fd.append(ENTRY.bairro, payload.bairro);
-  fd.append(ENTRY.cidade, payload.cidade);
-  fd.append(ENTRY.estado, payload.estado);
-  fd.append(ENTRY.pagamento, payload.pagamento);
-  fd.append(ENTRY.itens, payload.itens);
-  fd.append(ENTRY.total, payload.total);
+function sendToGoogleForms(payload){
+  return new Promise((resolve) => {
+    const iframeName = "hidden_iframe_" + Date.now();
+    const iframe = document.createElement("iframe");
+    iframe.name = iframeName;
+    iframe.style.display = "none";
 
-  await fetch(GOOGLE_FORM_ACTION, { method: "POST", mode: "no-cors", body: fd });
+    const form = document.createElement("form");
+    form.action = GOOGLE_FORM_ACTION;
+    form.method = "POST";
+    form.target = iframeName;
+    form.style.display = "none";
+
+    function add(name, value){
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value ?? "";
+      form.appendChild(input);
+    }
+
+    add(ENTRY.orderId, payload.orderId);
+    add(ENTRY.dateTime, payload.dateTime);
+    add(ENTRY.nome, payload.nome);
+    add(ENTRY.cpf, payload.cpf);
+    add(ENTRY.whatsapp, payload.whatsapp);
+    add(ENTRY.cep, payload.cep);
+    add(ENTRY.endereco, payload.endereco);
+    add(ENTRY.numero, payload.numero);
+    add(ENTRY.complemento, payload.complemento);
+    add(ENTRY.bairro, payload.bairro);
+    add(ENTRY.cidade, payload.cidade);
+    add(ENTRY.estado, payload.estado);
+    add(ENTRY.pagamento, payload.pagamento);
+    add(ENTRY.itens, payload.itens);
+    add(ENTRY.total, payload.total);
+
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+
+    iframe.onload = () => {
+      // dá um tempinho pro Google processar
+      setTimeout(() => {
+        form.remove();
+        iframe.remove();
+        resolve(true);
+      }, 800);
+    };
+
+    form.submit();
+  });
 }
 
 let SENDING = false;
