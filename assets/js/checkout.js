@@ -2,29 +2,13 @@
 const CART_KEY = "daenvi_cart";
 const ORDERS_KEY = "daenvi_orders";
 
-const GOOGLE_FORM_ACTION =
-  "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfJdVNb9KeNiB7a5otVfz952SmpHY4-TFW0pfXxLHe7Y5U2Lw/formResponse";
+// ✅ API do Apps Script (a sua)
+const DAENVI_API_URL = "https://script.google.com/macros/s/AKfycbx6z6hD9iORhK6E9MARxKopbysGVaunBZUYGXv5beBPgHg4RiHcEmdP9JNPkCnrwHTj/exec";
 
-const ENTRY = {
-  orderId: "entry.1855484752",
-  dateTime: "entry.922196235",
-  nome: "entry.1230654357",
-  cpf: "entry.76616706",
-  whatsapp: "entry.1590058310",
-  cep: "entry.2070484836",
-  endereco: "entry.1788536542",
-  numero: "entry.101360856",
-  complemento: "entry.1856258826",
-  bairro: "entry.1714075075",
-  cidade: "entry.168789408",
-  estado: "entry.447286208",
-  pagamento: "entry.638609560",
-  itens: "entry.821897272",
-  total: "entry.393353290"
-};
+// ✅ Chave para o checkout enviar pedidos (igual no Code.gs)
+const DAENVI_PUBLIC_WRITE_KEY = "DAENVI_PEDIDO_2026";
 
 function $(id){ return document.getElementById(id); }
-
 function onlyDigits(s){ return String(s || "").replace(/\D/g, ""); }
 
 function money(v){
@@ -94,7 +78,7 @@ function renderResumo(){
 function isValidCPF(cpf){
   cpf = onlyDigits(cpf);
   if(cpf.length !== 11) return false;
-  if(/^(\d)\1{10}$/.test(cpf)) return false; // bloqueia 00000000000, 111...
+  if(/^(\d)\1{10}$/.test(cpf)) return false;
 
   let sum = 0;
   for(let i=0; i<9; i++) sum += parseInt(cpf[i],10) * (10 - i);
@@ -148,57 +132,20 @@ function buildItensMultiline(cart){
   return cart.map(i => `${i.qtd}x ${i.nome} — ${money(i.preco)}`).join("\n");
 }
 
-function sendToGoogleForms(payload){
-  return new Promise((resolve) => {
-    const iframeName = "hidden_iframe_" + Date.now();
-    const iframe = document.createElement("iframe");
-    iframe.name = iframeName;
-    iframe.style.display = "none";
-
-    const form = document.createElement("form");
-    form.action = GOOGLE_FORM_ACTION;
-    form.method = "POST";
-    form.target = iframeName;
-    form.style.display = "none";
-
-    function add(name, value){
-      const input = document.createElement("input");
-      input.type = "hidden";
-      input.name = name;
-      input.value = value ?? "";
-      form.appendChild(input);
-    }
-
-    add(ENTRY.orderId, payload.orderId);
-    add(ENTRY.dateTime, payload.dateTime);
-    add(ENTRY.nome, payload.nome);
-    add(ENTRY.cpf, payload.cpf);
-    add(ENTRY.whatsapp, payload.whatsapp);
-    add(ENTRY.cep, payload.cep);
-    add(ENTRY.endereco, payload.endereco);
-    add(ENTRY.numero, payload.numero);
-    add(ENTRY.complemento, payload.complemento);
-    add(ENTRY.bairro, payload.bairro);
-    add(ENTRY.cidade, payload.cidade);
-    add(ENTRY.estado, payload.estado);
-    add(ENTRY.pagamento, payload.pagamento);
-    add(ENTRY.itens, payload.itens);
-    add(ENTRY.total, payload.total);
-
-    document.body.appendChild(iframe);
-    document.body.appendChild(form);
-
-    iframe.onload = () => {
-      // dá um tempinho pro Google processar
-      setTimeout(() => {
-        form.remove();
-        iframe.remove();
-        resolve(true);
-      }, 800);
-    };
-
-    form.submit();
+async function sendOrderToApi(orderPayload){
+  const res = await fetch(DAENVI_API_URL, {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify({
+      key: DAENVI_PUBLIC_WRITE_KEY,
+      order: orderPayload
+    })
   });
+
+  const data = await res.json().catch(()=>null);
+  if(!res.ok || (data && data.ok === false)){
+    throw new Error((data && data.error) ? data.error : "Falha ao enviar pedido");
+  }
 }
 
 let SENDING = false;
@@ -226,7 +173,35 @@ async function finalizarPedido(){
   const createdAt = nowStr();
   const totalNum = calcTotal(cart);
 
-  const pedido = {
+  // trava botão
+  SENDING = true;
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+  }
+
+  // payload para API (planilha)
+  const apiOrder = {
+    orderId,
+    createdAt,
+    status: "Recebido",
+    total: money(totalNum),
+    payment: data.pagamento,
+    name: data.nome,
+    cpf: onlyDigits(data.cpf),
+    whatsapp: onlyDigits(data.whatsapp),
+    cep: onlyDigits(data.cep),
+    address: data.endereco,
+    number: data.numero,
+    complement: data.complemento,
+    neighborhood: data.bairro,
+    city: data.cidade,
+    state: data.estado,
+    itemsJson: JSON.stringify(cart)
+  };
+
+  // salva local também (pra acompanhar pedido continuar)
+  const localPedido = {
     id: orderId,
     criadoEm: createdAt,
     status: "Recebido",
@@ -236,65 +211,40 @@ async function finalizarPedido(){
     itensResumo: buildItensMultiline(cart).replace(/\n/g, " | ")
   };
 
-  // trava botão
-  SENDING = true;
-  if(btn){
-    btn.disabled = true;
-    btn.textContent = "Enviando...";
-  }
-
-  // salva local para acompanhar funcionar
-  const orders = getOrders();
-  orders.unshift(pedido);
-  saveOrders(orders);
-
-  // envia pro Google Forms (planilha)
   try{
-    await sendToGoogleForms({
-      orderId,
-      dateTime: createdAt,
-      nome: data.nome,
-      cpf: onlyDigits(data.cpf),
-      whatsapp: onlyDigits(data.whatsapp),
-      cep: onlyDigits(data.cep),
-      endereco: data.endereco,
-      numero: data.numero,
-      complemento: data.complemento,
-      bairro: data.bairro,
-      cidade: data.cidade,
-      estado: data.estado,
-      pagamento: data.pagamento,
-      itens: buildItensMultiline(cart),
-      total: money(totalNum)
-    });
+    await sendOrderToApi(apiOrder);
+
+    const orders = getOrders();
+    orders.unshift(localPedido);
+    saveOrders(orders);
+
+    saveCart([]);
+
+    showMsg("ok", `Pedido enviado com sucesso! ID: ${orderId}`);
+    setTimeout(() => {
+      window.location.href = `pedido-recebido.html?id=${encodeURIComponent(orderId)}`;
+    }, 700);
+
   }catch(e){
-    console.warn("Falha ao enviar pro Google Forms:", e);
+    showMsg("error", "Não consegui enviar o pedido pra planilha. Tente novamente. (" + e.message + ")");
+    SENDING = false;
+    if(btn){
+      btn.disabled = false;
+      btn.textContent = "Fazer pedido";
+    }
   }
-
-  // limpa carrinho
-  saveCart([]);
-
-  showMsg("ok", `Pedido enviado com sucesso! ID: ${orderId}`);
-
-  setTimeout(() => {
-    window.location.href = `pedido-recebido.html?id=${encodeURIComponent(orderId)}`;
-  }, 700);
-}
-
-function bind(){
-  const btn = $("btnFinalizar");
-  if(!btn){
-    // se o botão não existir, você clica e não acontece nada — isso explica seu caso
-    console.warn("btnFinalizar não encontrado no HTML.");
-    return;
-  }
-  btn.addEventListener("click", (e) => {
-    e.preventDefault();
-    finalizarPedido();
-  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   renderResumo();
-  bind();
+
+  const btn = $("btnFinalizar");
+  if(btn){
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      finalizarPedido();
+    });
+  } else {
+    console.warn("btnFinalizar não encontrado no HTML.");
+  }
 });

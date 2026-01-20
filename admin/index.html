@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin • Daenvi</title>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="../index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Admin</span>
+      </a>
+
+      <div class="searchbox">
+        <input id="search" type="text" placeholder="Buscar por ID, nome, CPF..." />
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="btnReload" type="button">Atualizar</button>
+        <button class="btn" id="btnLogout" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="section">
+      <div class="section-header">
+        <h2>Painel de Pedidos</h2>
+        <p>Pedidos centralizados: site → API (Apps Script) → Planilha → Admin.</p>
+      </div>
+
+      <div class="card" id="loginCard">
+        <h3 class="card-title">Entrar no Admin</h3>
+        <div id="msg" class="msg"></div>
+
+        <div class="form">
+          <div class="field">
+            <label>API URL</label>
+            <input id="apiUrl" type="text" />
+          </div>
+
+          <div class="field">
+            <label>Admin Key</label>
+            <input id="adminKey" type="password" />
+          </div>
+
+          <button class="btn primary" id="btnLogin" type="button">Entrar</button>
+
+          <div class="mini-note">
+            Coloque a API URL e a Admin Key. Isso fica salvo neste navegador.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="panel" style="display:none;">
+        <div class="summary-row">
+          <span class="muted">Total de pedidos</span>
+          <strong id="count">0</strong>
+        </div>
+        <hr class="line"/>
+        <div id="orders"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/admin/assets/admin.js"></script>
+</body>
+</html>
