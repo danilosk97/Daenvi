@@ -2,17 +2,9 @@
 const CART_KEY = "daenvi_cart";
 const ORDERS_KEY = "daenvi_orders";
 
-// ✅ ACTION (você já mandou)
 const GOOGLE_FORM_ACTION =
   "https://docs.google.com/forms/u/0/d/e/1FAIpQLSfJdVNb9KeNiB7a5otVfz952SmpHY4-TFW0pfXxLHe7Y5U2Lw/formResponse";
 
-/**
- * ✅ Mapeamento pelos entry.xxxxx que você mandou.
- * Observação importante:
- * - Pix apareceu em entry.638609560 => isso é o "Pagamento"
- * - Itens/Total podem variar conforme a ordem real do seu formulário.
- * Se cair em coluna errada na planilha, é só trocar o entry daquele campo.
- */
 const ENTRY = {
   orderId: "entry.1855484752",
   dateTime: "entry.922196235",
@@ -32,6 +24,8 @@ const ENTRY = {
 };
 
 function $(id){ return document.getElementById(id); }
+
+function onlyDigits(s){ return String(s || "").replace(/\D/g, ""); }
 
 function money(v){
   return (Number(v) || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
@@ -96,6 +90,27 @@ function renderResumo(){
   totalEl.textContent = money(calcTotal(cart));
 }
 
+/** ✅ Validação real do CPF */
+function isValidCPF(cpf){
+  cpf = onlyDigits(cpf);
+  if(cpf.length !== 11) return false;
+  if(/^(\d)\1{10}$/.test(cpf)) return false; // bloqueia 00000000000, 111...
+
+  let sum = 0;
+  for(let i=0; i<9; i++) sum += parseInt(cpf[i],10) * (10 - i);
+  let d1 = (sum * 10) % 11;
+  if(d1 === 10) d1 = 0;
+  if(d1 !== parseInt(cpf[9],10)) return false;
+
+  sum = 0;
+  for(let i=0; i<10; i++) sum += parseInt(cpf[i],10) * (11 - i);
+  let d2 = (sum * 10) % 11;
+  if(d2 === 10) d2 = 0;
+  if(d2 !== parseInt(cpf[10],10)) return false;
+
+  return true;
+}
+
 function getFormData(){
   return {
     nome: ($("nome")?.value || "").trim(),
@@ -115,13 +130,16 @@ function getFormData(){
 function validateForm(d){
   if(!d.nome) return "Informe seu nome completo.";
   if(!d.cpf) return "Informe seu CPF.";
+  if(!isValidCPF(d.cpf)) return "CPF inválido. Digite um CPF verdadeiro (11 dígitos).";
   if(!d.whatsapp) return "Informe seu WhatsApp/Telefone.";
+  if(onlyDigits(d.whatsapp).length < 10) return "WhatsApp/Telefone inválido (coloque DDD + número).";
   if(!d.cep) return "Informe seu CEP.";
+  if(onlyDigits(d.cep).length !== 8) return "CEP inválido (8 dígitos).";
   if(!d.endereco) return "Informe seu endereço.";
   if(!d.numero) return "Informe o número.";
   if(!d.bairro) return "Informe o bairro.";
   if(!d.cidade) return "Informe a cidade.";
-  if(!d.estado) return "Informe o estado.";
+  if(!d.estado) return "Informe o estado (ex: PE).";
   if(!d.pagamento) return "Selecione a forma de pagamento.";
   return null;
 }
@@ -132,7 +150,6 @@ function buildItensMultiline(cart){
 
 async function sendToGoogleForms(payload){
   const fd = new FormData();
-
   fd.append(ENTRY.orderId, payload.orderId);
   fd.append(ENTRY.dateTime, payload.dateTime);
   fd.append(ENTRY.nome, payload.nome);
@@ -145,16 +162,19 @@ async function sendToGoogleForms(payload){
   fd.append(ENTRY.bairro, payload.bairro);
   fd.append(ENTRY.cidade, payload.cidade);
   fd.append(ENTRY.estado, payload.estado);
-
   fd.append(ENTRY.pagamento, payload.pagamento);
   fd.append(ENTRY.itens, payload.itens);
   fd.append(ENTRY.total, payload.total);
 
-  // no-cors: envia sem travar (o Google não libera resposta CORS)
   await fetch(GOOGLE_FORM_ACTION, { method: "POST", mode: "no-cors", body: fd });
 }
 
+let SENDING = false;
+
 async function finalizarPedido(){
+  if(SENDING) return;
+
+  const btn = $("btnFinalizar");
   showMsg("", "");
 
   const cart = getCart();
@@ -184,20 +204,27 @@ async function finalizarPedido(){
     itensResumo: buildItensMultiline(cart).replace(/\n/g, " | ")
   };
 
-  // 1) salva local (acompanhar pedido continua funcionando)
+  // trava botão
+  SENDING = true;
+  if(btn){
+    btn.disabled = true;
+    btn.textContent = "Enviando...";
+  }
+
+  // salva local para acompanhar funcionar
   const orders = getOrders();
   orders.unshift(pedido);
   saveOrders(orders);
 
-  // 2) envia pro Google Forms (cai na planilha)
+  // envia pro Google Forms (planilha)
   try{
     await sendToGoogleForms({
       orderId,
       dateTime: createdAt,
       nome: data.nome,
-      cpf: data.cpf,
-      whatsapp: data.whatsapp,
-      cep: data.cep,
+      cpf: onlyDigits(data.cpf),
+      whatsapp: onlyDigits(data.whatsapp),
+      cep: onlyDigits(data.cep),
       endereco: data.endereco,
       numero: data.numero,
       complemento: data.complemento,
@@ -210,11 +237,11 @@ async function finalizarPedido(){
     });
   }catch(e){
     console.warn("Falha ao enviar pro Google Forms:", e);
-    // Mesmo se falhar o envio, não quebra o fluxo pro cliente
   }
 
-  // 3) limpa carrinho e vai pra tela de sucesso
+  // limpa carrinho
   saveCart([]);
+
   showMsg("ok", `Pedido enviado com sucesso! ID: ${orderId}`);
 
   setTimeout(() => {
@@ -222,14 +249,20 @@ async function finalizarPedido(){
   }, 700);
 }
 
-(function init(){
-  renderResumo();
-
+function bind(){
   const btn = $("btnFinalizar");
-  if(btn){
-    btn.addEventListener("click", (e) => {
-      e.preventDefault();
-      finalizarPedido();
-    });
+  if(!btn){
+    // se o botão não existir, você clica e não acontece nada — isso explica seu caso
+    console.warn("btnFinalizar não encontrado no HTML.");
+    return;
   }
-})();
+  btn.addEventListener("click", (e) => {
+    e.preventDefault();
+    finalizarPedido();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderResumo();
+  bind();
+});

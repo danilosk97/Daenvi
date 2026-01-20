@@ -40,7 +40,7 @@
     <section class="section">
       <div class="section-header">
         <h2>Finalizar pedido</h2>
-        <p>Preencha seus dados para registrar o pedido e gerar o ID de rastreio.</p>
+        <p>Preencha seus dados. O pedido será enviado para sua planilha (Google Forms) e também salvo para rastreio.</p>
       </div>
 
       <div class="checkout-grid">
@@ -50,7 +50,7 @@
 
           <div id="msg" class="msg"></div>
 
-          <form class="form">
+          <form class="form" onsubmit="return false;">
             <div class="field">
               <label>Nome completo</label>
               <input id="nome" type="text" placeholder="Ex: Danilo Silva" />
@@ -59,18 +59,18 @@
             <div class="form-row">
               <div class="field">
                 <label>CPF</label>
-                <input id="cpf" type="text" placeholder="Somente números" />
+                <input id="cpf" type="text" placeholder="Somente números" inputmode="numeric" />
               </div>
               <div class="field">
                 <label>WhatsApp / Telefone</label>
-                <input id="whatsapp" type="text" placeholder="DDD + número" />
+                <input id="whatsapp" type="text" placeholder="DDD + número" inputmode="numeric" />
               </div>
             </div>
 
             <div class="form-row">
               <div class="field">
                 <label>CEP</label>
-                <input id="cep" type="text" placeholder="Ex: 00000-000" />
+                <input id="cep" type="text" placeholder="00000-000" inputmode="numeric" />
               </div>
               <div class="field">
                 <label>Estado</label>
@@ -90,7 +90,7 @@
               </div>
               <div class="field">
                 <label>Complemento</label>
-                <input id="complemento" type="text" placeholder="Apto, bloco, referência (opcional)" />
+                <input id="complemento" type="text" placeholder="Apto/bloco/ref (opcional)" />
               </div>
             </div>
 
@@ -120,7 +120,7 @@
             <button id="btnFinalizar" class="btn primary" type="button">Fazer pedido</button>
 
             <div class="mini-note">
-              Ao enviar, o pedido é registrado e você recebe um <b>ID</b> para acompanhar.
+              CPF será validado. Carrinho vazio não finaliza.
             </div>
           </form>
         </div>
@@ -139,7 +139,7 @@
           </div>
 
           <div class="mini-note">
-            Dica: se o carrinho estiver vazio, volte e adicione produtos.
+            Se seu carrinho estiver vazio, volte e adicione produtos.
           </div>
         </div>
       </div>
@@ -152,7 +152,7 @@
             <span class="brand-dot"></span>
             <span class="brand-name">Daenvi</span>
           </div>
-          <p class="muted">Fase 1: pedidos registrados localmente com ID.</p>
+          <p class="muted">Fase 1: loja estática + pedidos via Google Forms + rastreio local.</p>
         </div>
 
         <div>
@@ -164,7 +164,7 @@
 
         <div>
           <div class="footer-title">Suporte</div>
-          <span class="muted">Canal de suporte (fase 1)</span>
+          <span class="muted">Suporte (fase 1)</span>
         </div>
       </div>
     </footer>
