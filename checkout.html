@@ -36,10 +36,9 @@
     </div>
 
     <section class="checkout-grid">
-      <!-- ESQUERDA: DADOS -->
+      <!-- ESQUERDA -->
       <div class="card">
         <h3 class="card-title">Dados do cliente</h3>
-
         <div class="msg" id="msgCheckout"></div>
 
         <form class="form" id="checkoutForm">
@@ -72,7 +71,7 @@
             </div>
             <div class="field">
               <label>Número</label>
-              <input id="numero" autocomplete="address-line2" required />
+              <input id="numero" required />
             </div>
           </div>
 
@@ -102,80 +101,17 @@
 
           <h3 class="card-title">Pagamento</h3>
 
-          <div class="field">
-            <label>Método</label>
-            <select id="paymentMethod" required>
-              <option value="Pix">Pix</option>
-              <option value="Cartão">Cartão</option>
-              <option value="Boleto">Boleto</option>
-            </select>
+          <div class="mini-note">
+            ✅ Para finalizar, você paga primeiro no Mercado Pago.<br/>
+            O botão <b>Enviar pedido</b> só libera após o pagamento ser <b>aprovado</b>.
           </div>
 
-          <!-- BOX PAGAMENTO DINÂMICO -->
-          <div class="card" style="padding:14px; background: rgba(255,255,255,.02);">
-            <!-- PIX -->
-            <div id="payPix" style="display:none;">
-              <div class="mini-title">Pix</div>
-              <div class="mini-sub">Pague pelo Pix e cole abaixo o <b>código/ID do comprovante</b> para liberar o pedido.</div>
-
-              <div class="mini-note" style="margin-top:10px;">
-                <div><b>Chave Pix:</b> <span id="pixKeyText"></span></div>
-                <div class="hero-cta" style="margin-top:10px;">
-                  <button type="button" class="btn ghost" id="btnCopyPix">Copiar chave Pix</button>
-                </div>
-              </div>
-
-              <div class="field" style="margin-top:10px;">
-                <label>Código/ID do comprovante (TXID/ID)</label>
-                <input id="pixProof" placeholder="Ex: E123ABC... / TXID..." />
-              </div>
-
-              <div class="hero-cta">
-                <button type="button" class="btn primary" id="btnConfirmPix">Confirmar pagamento</button>
-              </div>
-
-              <div class="msg" id="msgPix"></div>
-            </div>
-
-            <!-- CARTÃO -->
-            <div id="payCard" style="display:none;">
-              <div class="mini-title">Cartão</div>
-              <div class="mini-sub">
-                No modo grátis, a confirmação automática não existe.
-                Você pode pedir o link de pagamento e depois colar o <b>código do comprovante</b>.
-              </div>
-
-              <div class="field" style="margin-top:10px;">
-                <label>Código/ID do comprovante</label>
-                <input id="cardProof" placeholder="Ex: MP-123... / comprovante..." />
-              </div>
-
-              <div class="hero-cta">
-                <button type="button" class="btn primary" id="btnConfirmCard">Confirmar pagamento</button>
-              </div>
-
-              <div class="msg" id="msgCard"></div>
-            </div>
-
-            <!-- BOLETO -->
-            <div id="payBoleto" style="display:none;">
-              <div class="mini-title">Boleto</div>
-              <div class="mini-sub">
-                No modo grátis, você gera/recebe o boleto por fora e cola o <b>código do comprovante</b> aqui para liberar.
-              </div>
-
-              <div class="field" style="margin-top:10px;">
-                <label>Código/ID do comprovante</label>
-                <input id="boletoProof" placeholder="Ex: pagamento do boleto..." />
-              </div>
-
-              <div class="hero-cta">
-                <button type="button" class="btn primary" id="btnConfirmBoleto">Confirmar pagamento</button>
-              </div>
-
-              <div class="msg" id="msgBoleto"></div>
-            </div>
+          <div class="hero-cta" style="margin-top:12px;">
+            <button type="button" class="btn primary" id="btnPayMP">Pagar com Mercado Pago</button>
+            <button type="button" class="btn ghost" id="btnCheckPayment">Verificar pagamento</button>
           </div>
+
+          <div class="msg" id="msgMP"></div>
 
           <hr class="line"/>
 
@@ -184,36 +120,34 @@
           </button>
 
           <div class="mini-note">
-            O pedido só é enviado após o pagamento ser confirmado (modo manual no plano grátis).
+            Após enviar, você recebe um código e pode acompanhar o pedido.
           </div>
         </form>
       </div>
 
-      <div class="hero-cta" style="margin-top:12px;">
-  <button type="button" class="btn primary" id="btnPayMP">Pagar com Mercado Pago</button>
-</div>
-<div class="msg" id="msgMP"></div>
-
-      <!-- DIREITA: RESUMO -->
+      <!-- DIREITA -->
       <div class="card summary">
         <div class="summary-title">Resumo do pedido</div>
+
         <div id="checkoutItems" class="checkout-items"></div>
 
         <div class="summary-row">
           <span>Subtotal</span>
           <b id="subtotal">R$ 0,00</b>
         </div>
+
         <div class="summary-row">
           <span>Entrega</span>
           <b id="frete">R$ 0,00</b>
         </div>
+
         <div class="summary-row total">
           <span>Total</span>
           <b id="total">R$ 0,00</b>
         </div>
 
         <div class="mini-note">
-          Depois que você enviar o pedido, você recebe um código para acompanhar.
+          Pagamento processado pelo Mercado Pago.
         </div>
       </div>
     </section>
@@ -226,7 +160,7 @@
           <span class="brand-dot"></span>
           <span class="brand-name">Daenvi</span>
         </div>
-        <p class="muted">Checkout com bloqueio de pedido até confirmação de pagamento.</p>
+        <p class="muted">Loja com pagamento e confirmação antes de registrar o pedido.</p>
       </div>
       <div>
         <div class="footer-title">Navegação</div>

@@ -2,17 +2,17 @@
 (() => {
   const $ = (id) => document.getElementById(id);
 
-  // ===== Config =====
-  const ORDER_API = "/api/orders";
-  const PUBLIC_WRITE_KEY = "DAENVI_PEDIDO_2026";
+  // ========= CONFIG =========
+  const MP_CREATE_URL = "/api/mp/create";
+  const MP_STATUS_URL = "/api/mp/status";
 
-  // Coloque sua chave Pix aqui (pode trocar depois)
-  const PIX_KEY = "SUA_CHAVE_PIX_AQUI";
+  const ORDER_API_URL = "/api/orders"; // sua API de pedidos/planilha
+  const PUBLIC_WRITE_KEY = "DAENVI_PEDIDO_2026"; // a mesma key que você já usa
 
-  // ===== Helpers =====
-  function setMsg(el, text, type) {
+  // ========= HELPERS =========
+  function setMsg(el, text, type = "") {
     if (!el) return;
-    el.className = "msg " + (type || "");
+    el.className = "msg " + type;
     el.textContent = text || "";
     el.style.display = text ? "block" : "none";
   }
@@ -47,9 +47,10 @@
   }
 
   function getCart() {
-    // Usa o carrinho.js (se você já tem funções globais), senão lê localStorage padrão
+    // Se teu carrinho.js tiver helper global, usa
     if (typeof window.getCartItems === "function") return window.getCartItems();
 
+    // fallback
     const key = window.CART_KEY || "daenvi_cart";
     try {
       return JSON.parse(localStorage.getItem(key) || "[]");
@@ -70,84 +71,34 @@
     return "DV-" + Date.now().toString(36).toUpperCase();
   }
 
-  // ===== Payment state =====
-  let paymentConfirmed = false;
-  let paymentProof = "";
-  let currentMethod = "Pix";
+  function parseAmountFromTotalText(totalText) {
+    // Ex: "R$ 1.234,56"
+    const cleaned = String(totalText || "")
+      .replace("R$", "")
+      .replace(/\./g, "")
+      .replace(",", ".")
+      .replace(/[^\d.]/g, "")
+      .trim();
 
-  function lockSendBtn() {
+    const amount = Number(cleaned);
+    return Number.isFinite(amount) ? amount : 0;
+  }
+
+  function getBackUrl() {
+    return window.location.origin + "/checkout.html";
+  }
+
+  // ========= STATE =========
+  let paymentApproved = false;
+  let paymentId = "";
+  let orderId = "";
+
+  function lockSendButton() {
     const btn = $("btnSendOrder");
-    if (btn) btn.disabled = !paymentConfirmed;
+    if (btn) btn.disabled = !paymentApproved;
   }
 
-  function resetPaymentState() {
-    paymentConfirmed = false;
-    paymentProof = "";
-    setMsg($("msgPix"), "", "");
-    setMsg($("msgCard"), "", "");
-    setMsg($("msgBoleto"), "", "");
-    lockSendBtn();
-  }
-
-  function showPaymentBox(method) {
-    $("payPix").style.display = method === "Pix" ? "block" : "none";
-    $("payCard").style.display = method === "Cartão" ? "block" : "none";
-    $("payBoleto").style.display = method === "Boleto" ? "block" : "none";
-  }
-
-  async function copyText(txt) {
-    try {
-      await navigator.clipboard.writeText(txt);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function confirmPayment(method) {
-    resetPaymentState();
-
-    if (method === "Pix") {
-      const proof = String($("pixProof").value || "").trim();
-      if (!proof || proof.length < 6) {
-        setMsg($("msgPix"), "Cole um código/ID de comprovante válido (mín. 6 caracteres).", "error");
-        return;
-      }
-      paymentConfirmed = true;
-      paymentProof = proof;
-      setMsg($("msgPix"), "Pagamento confirmado (modo manual). Agora você pode enviar o pedido.", "ok");
-      lockSendBtn();
-      return;
-    }
-
-    if (method === "Cartão") {
-      const proof = String($("cardProof").value || "").trim();
-      if (!proof || proof.length < 6) {
-        setMsg($("msgCard"), "Cole um código/ID de comprovante válido (mín. 6 caracteres).", "error");
-        return;
-      }
-      paymentConfirmed = true;
-      paymentProof = proof;
-      setMsg($("msgCard"), "Pagamento confirmado (modo manual). Agora você pode enviar o pedido.", "ok");
-      lockSendBtn();
-      return;
-    }
-
-    if (method === "Boleto") {
-      const proof = String($("boletoProof").value || "").trim();
-      if (!proof || proof.length < 6) {
-        setMsg($("msgBoleto"), "Cole um código/ID de comprovante válido (mín. 6 caracteres).", "error");
-        return;
-      }
-      paymentConfirmed = true;
-      paymentProof = proof;
-      setMsg($("msgBoleto"), "Pagamento confirmado (modo manual). Agora você pode enviar o pedido.", "ok");
-      lockSendBtn();
-      return;
-    }
-  }
-
-  // ===== Render summary =====
+  // ========= RENDER SUMMARY =========
   function renderSummary() {
     const items = getCart();
     const wrap = $("checkoutItems");
@@ -158,7 +109,7 @@
       $("subtotal").textContent = money(0);
       $("frete").textContent = money(0);
       $("total").textContent = money(0);
-      return;
+      return { subtotal: 0, total: 0 };
     }
 
     let subtotal = 0;
@@ -180,21 +131,125 @@
       wrap.appendChild(row);
     });
 
-    const frete = 0; // depois a gente coloca regra simples
+    const frete = 0;
+    const total = subtotal + frete;
+
     $("subtotal").textContent = money(subtotal);
     $("frete").textContent = money(frete);
-    $("total").textContent = money(subtotal + frete);
+    $("total").textContent = money(total);
+
+    return { subtotal, total };
   }
 
-  // ===== Submit order =====
+  // ========= MERCADO PAGO =========
+  async function createPayment() {
+    const msgMP = $("msgMP");
+    setMsg(msgMP, "", "");
+
+    const cart = getCart();
+    if (!cart.length) {
+      setMsg(msgMP, "Carrinho vazio. Adicione produtos antes de pagar.", "error");
+      return;
+    }
+
+    // gera orderId se ainda não tiver
+    orderId = localStorage.getItem("daenvi_pending_order_id") || genOrderId();
+    localStorage.setItem("daenvi_pending_order_id", orderId);
+
+    const totalText = $("total").textContent || "R$ 0,00";
+    const amount = parseAmountFromTotalText(totalText);
+
+    if (amount <= 0) {
+      setMsg(msgMP, "Total inválido. Verifique o carrinho.", "error");
+      return;
+    }
+
+    setMsg(msgMP, "Gerando pagamento no Mercado Pago...", "ok");
+
+    try {
+      const res = await fetch(MP_CREATE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId,
+          title: "Pedido Daenvi",
+          amount,
+          backUrl: getBackUrl(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok || !data.init_point) {
+        console.log("MP create response:", data);
+        setMsg(msgMP, "Erro ao criar pagamento no Mercado Pago.", "error");
+        return;
+      }
+
+      setMsg(msgMP, "Redirecionando para pagamento...", "ok");
+
+      // Vai pro Mercado Pago
+      window.location.href = data.init_point;
+    } catch (e) {
+      setMsg(msgMP, "Falha ao criar pagamento: " + e.message, "error");
+    }
+  }
+
+  async function checkPaymentStatus(pid) {
+    const msgMP = $("msgMP");
+    setMsg(msgMP, "", "");
+
+    if (!pid) {
+      setMsg(msgMP, "Sem payment_id pra verificar.", "error");
+      return false;
+    }
+
+    setMsg(msgMP, "Verificando pagamento...", "ok");
+
+    try {
+      const res = await fetch(MP_STATUS_URL + "?payment_id=" + encodeURIComponent(pid));
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        console.log("MP status response:", data);
+        setMsg(msgMP, "Não consegui confirmar o pagamento agora.", "error");
+        return false;
+      }
+
+      if (data.status === "approved") {
+        paymentApproved = true;
+        paymentId = pid;
+        localStorage.setItem("daenvi_mp_payment_id", pid);
+
+        setMsg(msgMP, "Pagamento APROVADO ✅ Agora você pode enviar o pedido.", "ok");
+        lockSendButton();
+        return true;
+      }
+
+      paymentApproved = false;
+      lockSendButton();
+
+      setMsg(
+        msgMP,
+        "Pagamento ainda não aprovado. Status: " + (data.status || "desconhecido"),
+        "error"
+      );
+      return false;
+    } catch (e) {
+      setMsg(msgMP, "Erro ao verificar: " + e.message, "error");
+      return false;
+    }
+  }
+
+  // ========= SEND ORDER =========
   async function submitOrder(ev) {
     ev.preventDefault();
 
     const msg = $("msgCheckout");
     setMsg(msg, "", "");
 
-    if (!paymentConfirmed) {
-      setMsg(msg, "Confirme o pagamento antes de enviar o pedido.", "error");
+    if (!paymentApproved) {
+      setMsg(msg, "Você precisa pagar e ter o pagamento APROVADO antes de enviar o pedido.", "error");
       return;
     }
 
@@ -219,31 +274,34 @@
       setMsg(msg, "Preencha nome, WhatsApp e CPF.", "error");
       return;
     }
+
     if (!isValidCPF(cpf)) {
       setMsg(msg, "CPF inválido. Verifique e tente novamente.", "error");
       return;
     }
+
     if (!cep || !endereco || !numero || !bairro || !cidade || !uf) {
-      setMsg(msg, "Preencha endereço completo (CEP, rua, número, bairro, cidade e UF).", "error");
+      setMsg(msg, "Preencha o endereço completo.", "error");
       return;
     }
 
-    // total (do resumo)
-    const totalTxt = $("total").textContent || "R$ 0,00";
-
-    const orderId = genOrderId();
+    // orderId final
+    const finalOrderId = localStorage.getItem("daenvi_pending_order_id") || genOrderId();
     const createdAt = new Date().toLocaleString("pt-BR");
+    const totalText = $("total").textContent || "R$ 0,00";
 
     const payload = {
       action: "create_order",
       key: PUBLIC_WRITE_KEY,
       order: {
-        orderId,
+        orderId: finalOrderId,
         createdAt,
-        status: "Aguardando confirmação",
-        total: totalTxt,
-        payment: currentMethod,
-        paymentProof: paymentProof, // vai gravar no itemsJson junto se tua planilha estiver setada
+        status: "Pago",
+        total: totalText,
+
+        payment: "Mercado Pago",
+        paymentProof: "payment_id=" + paymentId,
+
         name: nome,
         cpf,
         whatsapp,
@@ -254,8 +312,9 @@
         neighborhood: bairro,
         city: cidade,
         state: uf,
-        itemsJson: JSON.stringify(cart)
-      }
+
+        itemsJson: JSON.stringify(cart),
+      },
     };
 
     try {
@@ -263,10 +322,10 @@
       btn.disabled = true;
       btn.textContent = "Enviando...";
 
-      const res = await fetch(ORDER_API, {
+      const res = await fetch(ORDER_API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -274,133 +333,62 @@
       if (!res.ok || !data.ok) {
         btn.disabled = false;
         btn.textContent = "Enviar pedido";
-        setMsg(msg, `Não consegui enviar o pedido. (${data.error || res.status})`, "error");
+        setMsg(msg, "Não consegui enviar o pedido. (" + (data.error || res.status) + ")", "error");
         return;
       }
 
-      setMsg(msg, "Pedido enviado com sucesso! Abrindo acompanhamento...", "ok");
+      setMsg(msg, "Pedido enviado com sucesso ✅ Abrindo acompanhamento...", "ok");
 
+      // limpa carrinho
       clearCart();
 
-      // salva código para a página de acompanhar
-      localStorage.setItem("daenvi_last_order", orderId);
+      // limpa state de pagamento
+      localStorage.removeItem("daenvi_pending_order_id");
+      localStorage.removeItem("daenvi_mp_payment_id");
+
+      // salva último pedido
+      localStorage.setItem("daenvi_last_order", finalOrderId);
 
       setTimeout(() => {
-        window.location.href = "acompanhar.html?orderId=" + encodeURIComponent(orderId);
-      }, 700);
-
-    } catch (err) {
-      setMsg(msg, "Falha ao enviar: " + err.message, "error");
+        window.location.href = "acompanhar.html?orderId=" + encodeURIComponent(finalOrderId);
+      }, 600);
+    } catch (e) {
+      setMsg(msg, "Falha ao enviar: " + e.message, "error");
       const btn = $("btnSendOrder");
       btn.disabled = false;
       btn.textContent = "Enviar pedido";
     }
   }
 
-  // ===== Init =====
+  // ========= INIT =========
   function init() {
     renderSummary();
     if (typeof window.updateCartBadge === "function") window.updateCartBadge();
 
-    // Pix key
-    $("pixKeyText").textContent = PIX_KEY;
+    paymentApproved = false;
+    lockSendButton();
 
-    // Payment method change
-    const sel = $("paymentMethod");
-    currentMethod = sel.value;
-    showPaymentBox(currentMethod);
-    resetPaymentState();
+    // Se voltou do MP, pega payment_id e confirma
+    const params = new URLSearchParams(window.location.search);
+    const pid = params.get("payment_id");
 
-    sel.addEventListener("change", () => {
-      currentMethod = sel.value;
-      showPaymentBox(currentMethod);
-      resetPaymentState();
+    if (pid) {
+      checkPaymentStatus(pid);
+    }
+
+    $("btnPayMP").addEventListener("click", createPayment);
+
+    $("btnCheckPayment").addEventListener("click", () => {
+      const saved = localStorage.getItem("daenvi_mp_payment_id") || pid || "";
+      if (!saved) {
+        setMsg($("msgMP"), "Nenhum pagamento encontrado ainda. Clique em pagar primeiro.", "error");
+        return;
+      }
+      checkPaymentStatus(saved);
     });
-
-    $("btnCopyPix").addEventListener("click", async () => {
-      const ok = await copyText(PIX_KEY);
-      setMsg($("msgPix"), ok ? "Chave Pix copiada ✅" : "Não consegui copiar. Copie manualmente.", ok ? "ok" : "error");
-    });
-
-    $("btnConfirmPix").addEventListener("click", () => confirmPayment("Pix"));
-    $("btnConfirmCard").addEventListener("click", () => confirmPayment("Cartão"));
-    $("btnConfirmBoleto").addEventListener("click", () => confirmPayment("Boleto"));
 
     $("checkoutForm").addEventListener("submit", submitOrder);
   }
-
-const btnPayMP = document.getElementById("btnPayMP");
-const msgMP = document.getElementById("msgMP");
-
-btnPayMP.addEventListener("click", async () => {
-  try {
-    setMsg(msgMP, "Gerando link de pagamento...", "ok");
-
-    const totalText = document.getElementById("total").textContent || "R$ 0,00";
-    const amount = Number(totalText.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-
-    if (amount <= 0) {
-      setMsg(msgMP, "Total inválido. Adicione itens no carrinho.", "error");
-      return;
-    }
-
-    const orderId = localStorage.getItem("daenvi_pending_order") || ("DV-" + Date.now().toString(36).toUpperCase());
-    localStorage.setItem("daenvi_pending_order", orderId);
-
-    const backUrl = window.location.origin + "/checkout.html";
-
-    const res = await fetch("/api/mp/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        orderId,
-        title: "Pedido Daenvi",
-        amount,
-        backUrl
-      })
-    });
-
-    const data = await res.json();
-    if (!data.ok) {
-      setMsg(msgMP, "Erro ao criar pagamento.", "error");
-      console.log(data);
-      return;
-    }
-
-    // redireciona pro MP
-    window.location.href = data.init_point;
-
-  } catch (e) {
-    setMsg(msgMP, "Falha: " + e.message, "error");
-  }
-});
-
-const params = new URLSearchParams(window.location.search);
-const payment_id = params.get("payment_id");
-const mp = params.get("mp");
-
-if (payment_id && mp) {
-  // Confere no servidor
-  fetch("/api/mp/status?payment_id=" + encodeURIComponent(payment_id))
-    .then(r => r.json())
-    .then(data => {
-      if (data.ok && data.status === "approved") {
-        paymentConfirmed = true;
-        paymentProof = "MP_PAYMENT_ID=" + payment_id;
-        lockSendBtn();
-        setMsg(document.getElementById("msgCheckout"), "Pagamento aprovado ✅ Agora você pode enviar o pedido.", "ok");
-      } else {
-        paymentConfirmed = false;
-        lockSendBtn();
-        setMsg(document.getElementById("msgCheckout"), "Pagamento não aprovado ainda (" + (data.status || "desconhecido") + ").", "error");
-      }
-    })
-    .catch(() => {
-      paymentConfirmed = false;
-      lockSendBtn();
-      setMsg(document.getElementById("msgCheckout"), "Não consegui confirmar o pagamento agora.", "error");
-    });
-}
 
   init();
 })();
