@@ -16,11 +16,11 @@
       </a>
 
       <div class="searchbox">
-        <input type="text" placeholder="Checkout • finalize seu pedido" disabled />
+        <input id="searchInput" type="text" placeholder="Buscar na loja..." />
       </div>
 
       <div class="actions">
-        <a class="cart-btn" href="carrinho.html" title="Carrinho">
+        <a class="cart-btn" href="carrinho.html">
           <span>🛒</span>
           <span class="badge" id="cartCount">0</span>
         </a>
@@ -28,148 +28,219 @@
     </div>
   </header>
 
-  <main class="container">
+  <main class="container section">
     <div class="crumbs">
       <a href="index.html">Início</a>
-      <span>›</span>
-      <a href="carrinho.html">Carrinho</a>
       <span>›</span>
       <span>Checkout</span>
     </div>
 
-    <section class="section">
-      <div class="section-header">
-        <h2>Finalizar pedido</h2>
-        <p>Preencha seus dados. O pedido será enviado para sua planilha (Google Forms) e também salvo para rastreio.</p>
-      </div>
+    <section class="checkout-grid">
+      <!-- ESQUERDA: DADOS -->
+      <div class="card">
+        <h3 class="card-title">Dados do cliente</h3>
 
-      <div class="checkout-grid">
-        <!-- FORM -->
-        <div class="card">
-          <h3 class="card-title">Dados do cliente</h3>
+        <div class="msg" id="msgCheckout"></div>
 
-          <div id="msg" class="msg"></div>
-
-          <form class="form" onsubmit="return false;">
+        <form class="form" id="checkoutForm">
+          <div class="form-row">
             <div class="field">
               <label>Nome completo</label>
-              <input id="nome" type="text" placeholder="Ex: Danilo Silva" />
+              <input id="nome" autocomplete="name" required />
             </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label>CPF</label>
-                <input id="cpf" type="text" placeholder="Somente números" inputmode="numeric" />
-              </div>
-              <div class="field">
-                <label>WhatsApp / Telefone</label>
-                <input id="whatsapp" type="text" placeholder="DDD + número" inputmode="numeric" />
-              </div>
+            <div class="field">
+              <label>WhatsApp</label>
+              <input id="whatsapp" placeholder="(81) 9xxxx-xxxx" autocomplete="tel" required />
             </div>
+          </div>
 
-            <div class="form-row">
-              <div class="field">
-                <label>CEP</label>
-                <input id="cep" type="text" placeholder="00000-000" inputmode="numeric" />
-              </div>
-              <div class="field">
-                <label>Estado</label>
-                <input id="estado" type="text" placeholder="Ex: PE" />
-              </div>
+          <div class="form-row">
+            <div class="field">
+              <label>CPF</label>
+              <input id="cpf" placeholder="Somente números" inputmode="numeric" required />
             </div>
+            <div class="field">
+              <label>CEP</label>
+              <input id="cep" placeholder="Somente números" inputmode="numeric" required />
+            </div>
+          </div>
 
+          <div class="form-row">
             <div class="field">
               <label>Endereço</label>
-              <input id="endereco" type="text" placeholder="Rua / Avenida" />
+              <input id="endereco" autocomplete="street-address" required />
             </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label>Número</label>
-                <input id="numero" type="text" placeholder="Ex: 123" />
-              </div>
-              <div class="field">
-                <label>Complemento</label>
-                <input id="complemento" type="text" placeholder="Apto/bloco/ref (opcional)" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="field">
-                <label>Bairro</label>
-                <input id="bairro" type="text" placeholder="Seu bairro" />
-              </div>
-              <div class="field">
-                <label>Cidade</label>
-                <input id="cidade" type="text" placeholder="Sua cidade" />
-              </div>
-            </div>
-
             <div class="field">
-              <label>Forma de pagamento</label>
-              <select id="pagamento">
-                <option value="">Selecione...</option>
-                <option value="Pix">Pix</option>
-                <option value="Cartão">Cartão</option>
-                <option value="Dinheiro">Dinheiro</option>
-              </select>
+              <label>Número</label>
+              <input id="numero" autocomplete="address-line2" required />
             </div>
+          </div>
 
-            <hr class="line"/>
-
-            <button id="btnFinalizar" class="btn primary" type="button">Fazer pedido</button>
-
-            <div class="mini-note">
-              CPF será validado. Carrinho vazio não finaliza.
+          <div class="form-row">
+            <div class="field">
+              <label>Complemento</label>
+              <input id="complemento" />
             </div>
-          </form>
-        </div>
+            <div class="field">
+              <label>Bairro</label>
+              <input id="bairro" required />
+            </div>
+          </div>
 
-        <!-- RESUMO -->
-        <div class="card">
-          <h3 class="card-title">Resumo do pedido</h3>
-
-          <div id="checkoutItems" class="checkout-items"></div>
+          <div class="form-row">
+            <div class="field">
+              <label>Cidade</label>
+              <input id="cidade" required />
+            </div>
+            <div class="field">
+              <label>UF</label>
+              <input id="uf" placeholder="PE" maxlength="2" required />
+            </div>
+          </div>
 
           <hr class="line"/>
 
-          <div class="summary-row total">
-            <span>Total</span>
-            <strong id="checkoutTotal">R$ 0,00</strong>
+          <h3 class="card-title">Pagamento</h3>
+
+          <div class="field">
+            <label>Método</label>
+            <select id="paymentMethod" required>
+              <option value="Pix">Pix</option>
+              <option value="Cartão">Cartão</option>
+              <option value="Boleto">Boleto</option>
+            </select>
           </div>
 
-          <div class="mini-note">
-            Se seu carrinho estiver vazio, volte e adicione produtos.
+          <!-- BOX PAGAMENTO DINÂMICO -->
+          <div class="card" style="padding:14px; background: rgba(255,255,255,.02);">
+            <!-- PIX -->
+            <div id="payPix" style="display:none;">
+              <div class="mini-title">Pix</div>
+              <div class="mini-sub">Pague pelo Pix e cole abaixo o <b>código/ID do comprovante</b> para liberar o pedido.</div>
+
+              <div class="mini-note" style="margin-top:10px;">
+                <div><b>Chave Pix:</b> <span id="pixKeyText"></span></div>
+                <div class="hero-cta" style="margin-top:10px;">
+                  <button type="button" class="btn ghost" id="btnCopyPix">Copiar chave Pix</button>
+                </div>
+              </div>
+
+              <div class="field" style="margin-top:10px;">
+                <label>Código/ID do comprovante (TXID/ID)</label>
+                <input id="pixProof" placeholder="Ex: E123ABC... / TXID..." />
+              </div>
+
+              <div class="hero-cta">
+                <button type="button" class="btn primary" id="btnConfirmPix">Confirmar pagamento</button>
+              </div>
+
+              <div class="msg" id="msgPix"></div>
+            </div>
+
+            <!-- CARTÃO -->
+            <div id="payCard" style="display:none;">
+              <div class="mini-title">Cartão</div>
+              <div class="mini-sub">
+                No modo grátis, a confirmação automática não existe.
+                Você pode pedir o link de pagamento e depois colar o <b>código do comprovante</b>.
+              </div>
+
+              <div class="field" style="margin-top:10px;">
+                <label>Código/ID do comprovante</label>
+                <input id="cardProof" placeholder="Ex: MP-123... / comprovante..." />
+              </div>
+
+              <div class="hero-cta">
+                <button type="button" class="btn primary" id="btnConfirmCard">Confirmar pagamento</button>
+              </div>
+
+              <div class="msg" id="msgCard"></div>
+            </div>
+
+            <!-- BOLETO -->
+            <div id="payBoleto" style="display:none;">
+              <div class="mini-title">Boleto</div>
+              <div class="mini-sub">
+                No modo grátis, você gera/recebe o boleto por fora e cola o <b>código do comprovante</b> aqui para liberar.
+              </div>
+
+              <div class="field" style="margin-top:10px;">
+                <label>Código/ID do comprovante</label>
+                <input id="boletoProof" placeholder="Ex: pagamento do boleto..." />
+              </div>
+
+              <div class="hero-cta">
+                <button type="button" class="btn primary" id="btnConfirmBoleto">Confirmar pagamento</button>
+              </div>
+
+              <div class="msg" id="msgBoleto"></div>
+            </div>
           </div>
+
+          <hr class="line"/>
+
+          <button class="btn primary" id="btnSendOrder" type="submit" disabled>
+            Enviar pedido
+          </button>
+
+          <div class="mini-note">
+            O pedido só é enviado após o pagamento ser confirmado (modo manual no plano grátis).
+          </div>
+        </form>
+      </div>
+
+      <div class="hero-cta" style="margin-top:12px;">
+  <button type="button" class="btn primary" id="btnPayMP">Pagar com Mercado Pago</button>
+</div>
+<div class="msg" id="msgMP"></div>
+
+      <!-- DIREITA: RESUMO -->
+      <div class="card summary">
+        <div class="summary-title">Resumo do pedido</div>
+        <div id="checkoutItems" class="checkout-items"></div>
+
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <b id="subtotal">R$ 0,00</b>
+        </div>
+        <div class="summary-row">
+          <span>Entrega</span>
+          <b id="frete">R$ 0,00</b>
+        </div>
+        <div class="summary-row total">
+          <span>Total</span>
+          <b id="total">R$ 0,00</b>
+        </div>
+
+        <div class="mini-note">
+          Depois que você enviar o pedido, você recebe um código para acompanhar.
         </div>
       </div>
     </section>
-
-    <footer class="footer">
-      <div class="container footer-grid">
-        <div>
-          <div class="brand small">
-            <span class="brand-dot"></span>
-            <span class="brand-name">Daenvi</span>
-          </div>
-          <p class="muted">Fase 1: loja estática + pedidos via Google Forms + rastreio local.</p>
-        </div>
-
-        <div>
-          <div class="footer-title">Navegação</div>
-          <a class="footer-link" href="index.html#produtos">Produtos</a>
-          <a class="footer-link" href="carrinho.html">Carrinho</a>
-          <a class="footer-link" href="acompanhar.html">Acompanhar pedido</a>
-        </div>
-
-        <div>
-          <div class="footer-title">Suporte</div>
-          <span class="muted">Suporte (fase 1)</span>
-        </div>
-      </div>
-    </footer>
   </main>
 
+  <footer class="footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="brand small">
+          <span class="brand-dot"></span>
+          <span class="brand-name">Daenvi</span>
+        </div>
+        <p class="muted">Checkout com bloqueio de pedido até confirmação de pagamento.</p>
+      </div>
+      <div>
+        <div class="footer-title">Navegação</div>
+        <a class="footer-link" href="index.html#produtos">Produtos</a>
+        <a class="footer-link" href="carrinho.html">Carrinho</a>
+      </div>
+      <div>
+        <div class="footer-title">Suporte</div>
+        <span class="muted">Suporte (fase 1)</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/carrinho.js"></script>
   <script src="assets/js/checkout.js"></script>
 </body>
 </html>
