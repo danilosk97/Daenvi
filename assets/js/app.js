@@ -1,153 +1,148 @@
-// assets/js/app.js
-const API_PRODUCTS = "/api/products?action=products_list";
+(() => {
+  const grid = document.getElementById("productsGrid");
+  const categoriesWrap = document.getElementById("categoryRow");
+  const searchInput = document.getElementById("searchInput");
 
-const DEFAULT_IMG =
-  "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=60";
+  const API_LIST = "/api/products/list";
+  let all = [];
+  let category = "Todos";
+  let q = "";
 
-const $ = (id) => document.getElementById(id);
-
-function moneyLabel(priceStr) {
-  const s = String(priceStr || "").trim();
-  if (!s) return "R$ 0,00";
-  // Se já tem R$ no texto, respeita
-  if (s.toLowerCase().includes("r$")) return s;
-  // Se vier 79.90 ou 79,90
-  return "R$ " + s.replace(".", ",");
-}
-
-async function fetchProducts() {
-  const res = await fetch(API_PRODUCTS);
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.ok) return [];
-  return data.products || [];
-}
-
-function renderProducts(list, q = "", category = "Todos") {
-  const grid = $("productsGrid");
-  if (!grid) return;
-
-  const query = (q || "").toLowerCase().trim();
-  const cat = (category || "Todos").toLowerCase();
-
-  const filtered = list.filter(p => {
-    const hay = `${p.name} ${p.category} ${p.description}`.toLowerCase();
-    const okQuery = !query || hay.includes(query);
-    const okCat = cat === "todos" || String(p.category || "").toLowerCase() === cat;
-    return okQuery && okCat;
-  });
-
-  grid.innerHTML = "";
-
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="mini-note">Nenhum produto encontrado.</div>`;
-    return;
+  function money(v) {
+    const n = Number(v || 0);
+    return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   }
 
-  filtered.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
+  function normalize(s) {
+    return String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
 
-    const img = p.imageUrl ? p.imageUrl : DEFAULT_IMG;
+  function ensureCategories(items) {
+    const set = new Set(["Todos"]);
+    items.forEach(p => set.add((p.categoria || "Outros").trim() || "Outros"));
+    const cats = Array.from(set);
 
-    card.innerHTML = `
-      <a href="produto.html?id=${encodeURIComponent(p.id)}">
-        <div class="product-img">
-          <img src="${img}" alt="${escapeHtml(p.name)}" onerror="this.src='${DEFAULT_IMG}'">
-        </div>
-      </a>
+    if (!categoriesWrap) return;
+    categoriesWrap.innerHTML = "";
+
+    cats.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "cat" + (c === category ? " active" : "");
+      btn.textContent = c;
+      btn.addEventListener("click", () => {
+        category = c;
+        ensureCategories(all);
+        render();
+      });
+      categoriesWrap.appendChild(btn);
+    });
+  }
+
+  function card(p) {
+    const img = p.imagem || "https://via.placeholder.com/800x600?text=Daenvi";
+    const nome = p.nome || "Produto";
+    const preco = money(p.preco);
+    const id = p.id || "";
+
+    const el = document.createElement("div");
+    el.className = "product-card";
+    el.innerHTML = `
+      <div class="product-img">
+        <img src="${img}" alt="${nome}" onerror="this.src='https://via.placeholder.com/800x600?text=Daenvi'"/>
+      </div>
       <div class="product-body">
-        <div class="product-title">${escapeHtml(p.name)}</div>
+        <div class="product-title">${nome}</div>
         <div class="product-meta">
-          <div>
-            <div class="price">${escapeHtml(moneyLabel(p.price))}</div>
-            <div class="kicker">${escapeHtml(p.category || "Geral")}</div>
-          </div>
-          <div class="kicker">ID: ${escapeHtml(p.id)}</div>
+          <div class="price">${preco}</div>
+          <div class="kicker">${(p.categoria || "Outros")}</div>
         </div>
-
         <div class="product-actions">
-          <button class="btn ghost" data-view="${escapeHtml(p.id)}">Ver</button>
-          <button class="btn primary" data-add="${escapeHtml(p.id)}">Adicionar</button>
+          <button class="btn primary" data-buy="${id}">Comprar</button>
+          <a class="btn ghost" href="produto.html?id=${encodeURIComponent(id)}">Ver</a>
         </div>
       </div>
     `;
 
-    card.querySelector("[data-view]").addEventListener("click", () => {
-      window.location.href = `produto.html?id=${encodeURIComponent(p.id)}`;
-    });
+    el.querySelector("[data-buy]").addEventListener("click", () => {
+      // usa funções do carrinho.js se existirem
+      const item = {
+        id,
+        nome,
+        preco: Number(p.preco || 0),
+        imagem: img,
+        qtd: 1
+      };
 
-    card.querySelector("[data-add]").addEventListener("click", () => {
-      // integra com teu carrinho.js (precisa ter addToCart global)
       if (typeof window.addToCart === "function") {
-        window.addToCart({
-          id: p.id,
-          nome: p.name,
-          preco: Number(String(p.price).replace(",", ".").replace(/[^\d.]/g, "")) || 0,
-          img: p.imageUrl || DEFAULT_IMG
-        });
+        window.addToCart(item);
       } else {
-        alert("Carrinho não carregou. Verifique carrinho.js.");
+        // fallback simples
+        const key = window.CART_KEY || "daenvi_cart";
+        const cart = JSON.parse(localStorage.getItem(key) || "[]");
+        const idx = cart.findIndex(x => x.id === id);
+        if (idx >= 0) cart[idx].qtd = Number(cart[idx].qtd || 1) + 1;
+        else cart.push(item);
+        localStorage.setItem(key, JSON.stringify(cart));
       }
+
+      if (typeof window.updateCartBadge === "function") window.updateCartBadge();
+      alert("Adicionado ao carrinho ✅");
     });
 
-    grid.appendChild(card);
-  });
-}
+    return el;
+  }
 
-function renderCategories(products) {
-  const row = $("categoryRow");
-  if (!row) return;
+  function render() {
+    if (!grid) return;
+    grid.innerHTML = "";
 
-  const cats = Array.from(new Set(products.map(p => (p.category || "Geral").trim()).filter(Boolean)));
-  cats.sort((a,b) => a.localeCompare(b));
+    const filtered = all
+      .filter(p => String(p.ativo || "1") === "1")
+      .filter(p => category === "Todos" ? true : (p.categoria || "Outros") === category)
+      .filter(p => {
+        if (!q) return true;
+        const text = normalize((p.nome || "") + " " + (p.descricao || "") + " " + (p.categoria || ""));
+        return text.includes(normalize(q));
+      });
 
-  const all = ["Todos", ...cats];
-  row.innerHTML = "";
+    if (!filtered.length) {
+      grid.innerHTML = `<div class="mini-note">Nenhum produto encontrado.</div>`;
+      return;
+    }
 
-  all.forEach((c, idx) => {
-    const btn = document.createElement("button");
-    btn.className = "cat" + (idx === 0 ? " active" : "");
-    btn.textContent = c;
-    btn.addEventListener("click", () => {
-      row.querySelectorAll(".cat").forEach(x => x.classList.remove("active"));
-      btn.classList.add("active");
-      const q = ($("searchInput")?.value || "");
-      renderProducts(window.__DAENVI_PRODUCTS || [], q, c);
-    });
-    row.appendChild(btn);
-  });
-}
+    filtered.forEach(p => grid.appendChild(card(p)));
+  }
 
-function escapeHtml(str) {
-  return String(str || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+  async function load() {
+    if (!grid) return;
 
-async function init() {
-  // Atualiza badge carrinho (se carrinho.js expõe updateCartBadge)
-  if (typeof window.updateCartBadge === "function") window.updateCartBadge();
+    grid.innerHTML = `<div class="mini-note">Carregando produtos...</div>`;
 
-  const products = await fetchProducts();
-  window.__DAENVI_PRODUCTS = products;
+    try {
+      const res = await fetch(API_LIST);
+      const data = await res.json().catch(() => ({}));
 
-  renderCategories(products);
+      if (!res.ok || !data.ok) {
+        console.log(data);
+        grid.innerHTML = `<div class="mini-note">Não consegui carregar produtos agora.</div>`;
+        return;
+      }
 
-  const search = $("searchInput");
-  if (search) {
-    search.addEventListener("input", () => {
-      const q = search.value || "";
-      // categoria selecionada
-      const activeCat = document.querySelector(".cat.active")?.textContent || "Todos";
-      renderProducts(products, q, activeCat);
+      all = Array.isArray(data.data) ? data.data : [];
+      ensureCategories(all);
+      render();
+      if (typeof window.updateCartBadge === "function") window.updateCartBadge();
+    } catch (e) {
+      grid.innerHTML = `<div class="mini-note">Falha: ${e.message}</div>`;
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener("input", (ev) => {
+      q = ev.target.value || "";
+      render();
     });
   }
 
-  // Render inicial
-  renderProducts(products, "", "Todos");
-}
-
-init();
+  load();
+})();

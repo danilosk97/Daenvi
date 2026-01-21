@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin • Produtos • Daenvi</title>
+  <link rel="stylesheet" href="../assets/css/styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="../index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Admin</span>
+      </a>
+
+      <div class="searchbox">
+        <input id="searchInput" type="text" placeholder="Buscar produto..." />
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="btnReload">Recarregar</button>
+        <button class="btn" id="btnLogout">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container section">
+    <div class="crumbs">
+      <a href="../index.html">Loja</a>
+      <span>›</span>
+      <span>Admin</span>
+      <span>›</span>
+      <span>Produtos</span>
+    </div>
+
+    <section class="checkout-grid">
+      <div class="card">
+        <h3 class="card-title">Cadastrar / Editar produto</h3>
+        <div class="msg" id="msg"></div>
+
+        <form class="form" id="form">
+          <input type="hidden" id="id"/>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Nome</label>
+              <input id="nome" required />
+            </div>
+            <div class="field">
+              <label>Categoria</label>
+              <input id="categoria" placeholder="Ex: Eletrônicos" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Preço (R$)</label>
+              <input id="preco" inputmode="decimal" placeholder="199,90" required />
+            </div>
+            <div class="field">
+              <label>Imagem (URL)</label>
+              <input id="imagem" placeholder="https://..." />
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Descrição</label>
+            <input id="descricao" placeholder="Detalhes do produto..." />
+          </div>
+
+          <div class="form-row">
+            <div class="field">
+              <label>Ativo</label>
+              <select id="ativo">
+                <option value="1">Sim</option>
+                <option value="0">Não</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>&nbsp;</label>
+              <div class="hero-cta" style="margin-top:2px;">
+                <button class="btn primary" type="submit">Salvar</button>
+                <button class="btn ghost" type="button" id="btnClear">Limpar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="mini-note">
+            Dica: por enquanto a imagem é por URL. Depois a gente coloca upload real.
+          </div>
+        </form>
+      </div>
+
+      <div class="card summary">
+        <div class="summary-title">Produtos</div>
+        <div class="msg" id="msgList"></div>
+        <div id="list" class="checkout-items"></div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/carrinho.js"></script>
+  <script src="produtos.js"></script>
+</body>
+</html>
