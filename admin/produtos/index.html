@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Admin • Produtos • Daenvi</title>
+  <link rel="stylesheet" href="../../assets/css/styles.css"/>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-grid">
+      <a class="brand" href="../../index.html">
+        <span class="brand-dot"></span>
+        <span class="brand-name">Daenvi</span>
+        <span class="brand-tag">Admin</span>
+      </a>
+
+      <div class="searchbox">
+        <input id="searchInput" type="text" placeholder="Buscar produto..." />
+      </div>
+
+      <div class="actions">
+        <a class="cart-btn" href="../index.html">
+          <span>📦</span>
+          <span class="kicker">Pedidos</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container section">
+    <div class="section-header">
+      <h2>Produtos</h2>
+      <p>Cadastre por URL de imagem (grátis). Os produtos ativos aparecem automaticamente na Home.</p>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h3 class="card-title">Acesso</h3>
+      <div class="form-row">
+        <div class="field">
+          <label>API URL</label>
+          <input id="apiUrl" placeholder="/api/products" />
+        </div>
+        <div class="field">
+          <label>Admin Key</label>
+          <input id="adminKey" placeholder="DAENVI_ADMIN_2026" />
+        </div>
+      </div>
+      <div class="hero-cta" style="margin-top:10px;">
+        <button class="btn primary" id="btnEntrar">Entrar</button>
+        <button class="btn ghost" id="btnSair">Sair</button>
+      </div>
+      <div class="msg" id="msgAuth"></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr; margin-top:14px;">
+      <div class="card">
+        <h3 class="card-title">Cadastrar / Editar</h3>
+
+        <div class="form-row">
+          <div class="field">
+            <label>ID (deixe vazio para criar)</label>
+            <input id="pId" placeholder="PRD-..." />
+          </div>
+          <div class="field">
+            <label>Ativo</label>
+            <select id="pActive">
+              <option value="true">Sim (aparece na loja)</option>
+              <option value="false">Não (oculto)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label>Nome</label>
+            <input id="pName" placeholder="Ex: Fone Bluetooth X" />
+          </div>
+          <div class="field">
+            <label>Preço (texto mesmo)</label>
+            <input id="pPrice" placeholder="Ex: 79,90" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="field">
+            <label>Categoria</label>
+            <input id="pCategory" placeholder="Ex: Acessórios / Eletrônicos" />
+          </div>
+          <div class="field">
+            <label>URL da imagem</label>
+            <input id="pImageUrl" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Descrição</label>
+          <input id="pDesc" placeholder="Descrição curta do produto..." />
+        </div>
+
+        <div class="hero-cta" style="margin-top:10px;">
+          <button class="btn primary" id="btnSalvar">Salvar produto</button>
+          <button class="btn ghost" id="btnLimpar">Limpar</button>
+        </div>
+
+        <div class="msg" id="msgForm"></div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+          <h3 class="card-title" style="margin:0;">Lista</h3>
+          <div class="hero-cta" style="margin:0;">
+            <button class="btn ghost" id="btnAtualizar">Atualizar</button>
+          </div>
+        </div>
+
+        <div class="line"></div>
+
+        <div id="listWrap" class="checkout-items"></div>
+
+        <div class="mini-note">
+          Dica: clique em um item para carregar no formulário e editar.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="produtos.js"></script>
+</body>
+</html>
