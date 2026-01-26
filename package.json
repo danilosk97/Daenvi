@@ -1,0 +1,24 @@
+{
+  "name": "daenvi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danilosk97/Daenvi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/danilosk97/Daenvi/issues"
+  },
+  "homepage": "https://github.com/danilosk97/Daenvi#readme",
+  "devDependencies": {
+    "wrangler": "^4.60.0"
+  }
+}
