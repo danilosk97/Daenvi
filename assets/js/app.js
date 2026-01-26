@@ -1,11 +1,14 @@
 (() => {
   const grid = document.getElementById("productsGrid");
-  const categoriesWrap = document.getElementById("categoryRow");
-  const searchInput = document.getElementById("searchInput");
+  const categorySelect = document.getElementById("category");
+  const sortSelect = document.getElementById("sort");
+  const searchInput = document.getElementById("search");
+  const emptyState = document.getElementById("emptyState");
 
   const API_LIST = "/api/products/list";
   let all = [];
-  let category = "Todos";
+  let category = "all";
+  let sortBy = "relevance";
   let q = "";
 
   function money(v) {
@@ -18,23 +21,19 @@
   }
 
   function ensureCategories(items) {
-    const set = new Set(["Todos"]);
+    const set = new Set(["all"]);
     items.forEach(p => set.add((p.categoria || "Outros").trim() || "Outros"));
     const cats = Array.from(set);
 
-    if (!categoriesWrap) return;
-    categoriesWrap.innerHTML = "";
+    if (!categorySelect) return;
+    categorySelect.innerHTML = "";
 
     cats.forEach(c => {
-      const btn = document.createElement("button");
-      btn.className = "cat" + (c === category ? " active" : "");
-      btn.textContent = c;
-      btn.addEventListener("click", () => {
-        category = c;
-        ensureCategories(all);
-        render();
-      });
-      categoriesWrap.appendChild(btn);
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = c === "all" ? "Todas categorias" : c;
+      if (c === category) opt.selected = true;
+      categorySelect.appendChild(opt);
     });
   }
 
@@ -96,20 +95,31 @@
     if (!grid) return;
     grid.innerHTML = "";
 
-    const filtered = all
+    let filtered = all
       .filter(p => String(p.ativo || "1") === "1")
-      .filter(p => category === "Todos" ? true : (p.categoria || "Outros") === category)
+      .filter(p => category === "all" ? true : (p.categoria || "Outros") === category)
       .filter(p => {
         if (!q) return true;
         const text = normalize((p.nome || "") + " " + (p.descricao || "") + " " + (p.categoria || ""));
         return text.includes(normalize(q));
       });
 
+    // Ordenação
+    if (sortBy === "price_asc") {
+      filtered.sort((a, b) => Number(a.preco || 0) - Number(b.preco || 0));
+    } else if (sortBy === "price_desc") {
+      filtered.sort((a, b) => Number(b.preco || 0) - Number(a.preco || 0));
+    } else if (sortBy === "name_asc") {
+      filtered.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
+    }
+    // Para "relevance", assume ordem original do API (sem sort)
+
     if (!filtered.length) {
-      grid.innerHTML = `<div class="mini-note">Nenhum produto encontrado.</div>`;
+      if (emptyState) emptyState.style.display = "block";
       return;
     }
 
+    if (emptyState) emptyState.style.display = "none";
     filtered.forEach(p => grid.appendChild(card(p)));
   }
 
@@ -117,6 +127,7 @@
     if (!grid) return;
 
     grid.innerHTML = `<div class="mini-note">Carregando produtos...</div>`;
+    if (emptyState) emptyState.style.display = "none";
 
     try {
       const res = await fetch(API_LIST);
@@ -140,6 +151,20 @@
   if (searchInput) {
     searchInput.addEventListener("input", (ev) => {
       q = ev.target.value || "";
+      render();
+    });
+  }
+
+  if (categorySelect) {
+    categorySelect.addEventListener("change", (ev) => {
+      category = ev.target.value || "all";
+      render();
+    });
+  }
+
+  if (sortSelect) {
+    sortSelect.addEventListener("change", (ev) => {
+      sortBy = ev.target.value || "relevance";
       render();
     });
   }

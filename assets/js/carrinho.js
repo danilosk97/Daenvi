@@ -1,32 +1,32 @@
 // Daenvi/assets/js/carrinho.js
 const CART_KEY = "daenvi_cart";
 
-function $(id){ return document.getElementById(id); }
+function $(id) { return document.getElementById(id); }
 
-function money(v){
-  return (Number(v) || 0).toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+function money(v) {
+  return (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function getCart(){
+function getCart() {
   return JSON.parse(localStorage.getItem(CART_KEY) || "[]");
 }
 
-function saveCart(cart){
+function saveCart(cart) {
   localStorage.setItem(CART_KEY, JSON.stringify(cart));
 }
 
-function updateCartBadge(){
+function updateCartBadge() {
   const cart = getCart();
-  const count = cart.reduce((acc,i)=> acc + (i.qtd || 0), 0);
+  const count = cart.reduce((acc, i) => acc + (i.qtd || 0), 0);
   const badge = $("cartCount");
-  if(badge) badge.textContent = count;
+  if (badge) badge.textContent = count;
 }
 
-function calcTotal(cart){
-  return cart.reduce((acc,i)=> acc + (Number(i.preco)||0) * (Number(i.qtd)||0), 0);
+function calcTotal(cart) {
+  return cart.reduce((acc, i) => acc + (Number(i.preco) || 0) * (Number(i.qtd) || 0), 0);
 }
 
-function renderCart(){
+function renderCart() {
   const cart = getCart();
   const list = $("cartList");
   const totalEl = $("cartTotal");
@@ -35,21 +35,21 @@ function renderCart(){
   updateCartBadge();
 
   // Se a página não tiver cartList (ex: produto.html), só atualiza badge e sai
-  if(!list) return;
+  if (!list) return;
 
-  if(cart.length === 0){
+  if (cart.length === 0) {
     list.innerHTML = "";
-    if(totalEl) totalEl.textContent = money(0);
-    if(empty) empty.style.display = "block";
+    if (totalEl) totalEl.textContent = money(0);
+    if (empty) empty.style.display = "block";
     return;
   }
 
-  if(empty) empty.style.display = "none";
+  if (empty) empty.style.display = "none";
 
   list.innerHTML = cart.map(i => `
     <div class="cart-item">
       <div class="cart-left">
-        <img class="cart-img" src="${i.imagem || ""}" alt="${i.nome}" />
+        <img class="cart-img" src="${i.imagem || "https://via.placeholder.com/800x600?text=Daenvi"}" alt="${i.nome}" onerror="this.src='https://via.placeholder.com/800x600?text=Daenvi'"/>
         <div class="cart-info">
           <div class="cart-name">${i.nome}</div>
           <div class="muted">${money(i.preco)}</div>
@@ -63,54 +63,67 @@ function renderCart(){
           <span class="qty-num">${i.qtd}</span>
           <button class="btn ghost small" data-inc="${i.id}" type="button">+</button>
         </div>
-        <div class="cart-subtotal"><b>${money((Number(i.preco)||0) * (Number(i.qtd)||0))}</b></div>
+        <div class="cart-subtotal"><b>${money((Number(i.preco) || 0) * (Number(i.qtd) || 0))}</b></div>
       </div>
     </div>
   `).join("");
 
-  if(totalEl) totalEl.textContent = money(calcTotal(cart));
+  if (totalEl) totalEl.textContent = money(calcTotal(cart));
 }
 
-function inc(id){
+function addToCart(item) {
   const cart = getCart();
-  const idx = cart.findIndex(i => i.id === id);
-  if(idx < 0) return;
-  cart[idx].qtd += 1;
+  const idx = cart.findIndex(x => x.id === item.id);
+  if (idx >= 0) cart[idx].qtd = Number(cart[idx].qtd || 1) + (item.qtd || 1);
+  else cart.push(item);
   saveCart(cart);
   renderCart();
 }
 
-function dec(id){
+function inc(id) {
   const cart = getCart();
   const idx = cart.findIndex(i => i.id === id);
-  if(idx < 0) return;
+  if (idx < 0) return;
+  cart[idx].qtd = Number(cart[idx].qtd || 1) + 1;
+  saveCart(cart);
+  renderCart();
+}
 
-  cart[idx].qtd -= 1;
-  if(cart[idx].qtd <= 0) cart.splice(idx, 1);
+function dec(id) {
+  const cart = getCart();
+  const idx = cart.findIndex(i => i.id === id);
+  if (idx < 0) return;
+
+  cart[idx].qtd = Number(cart[idx].qtd || 1) - 1;
+  if (cart[idx].qtd <= 0) cart.splice(idx, 1);
 
   saveCart(cart);
   renderCart();
 }
 
-function removeItem(id){
+function removeItem(id) {
   const cart = getCart().filter(i => i.id !== id);
   saveCart(cart);
   renderCart();
 }
 
-(function init(){
+(function init() {
   renderCart();
 
   const list = $("cartList");
-  if(!list) return;
+  if (!list) return;
 
   list.addEventListener("click", (e) => {
     const incBtn = e.target.closest("[data-inc]");
     const decBtn = e.target.closest("[data-dec]");
-    const rmBtn  = e.target.closest("[data-remove]");
+    const rmBtn = e.target.closest("[data-remove]");
 
-    if(incBtn) return inc(incBtn.getAttribute("data-inc"));
-    if(decBtn) return dec(decBtn.getAttribute("data-dec"));
-    if(rmBtn)  return removeItem(rmBtn.getAttribute("data-remove"));
+    if (incBtn) return inc(incBtn.getAttribute("data-inc"));
+    if (decBtn) return dec(decBtn.getAttribute("data-dec"));
+    if (rmBtn) return removeItem(rmBtn.getAttribute("data-remove"));
   });
 })();
+
+// Expor funções globais para uso em outros scripts (ex: app.js)
+window.addToCart = addToCart;
+window.updateCartBadge = updateCartBadge;

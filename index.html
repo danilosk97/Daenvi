@@ -16,6 +16,7 @@
       </a>
 
       <div class="searchbox">
+        <label for="search" class="visually-hidden">Buscar produto</label>
         <input id="search" type="text" placeholder="Buscar produto..." />
       </div>
 
@@ -102,10 +103,12 @@
 
       <!-- Filtro de categoria e ordenação (simples, usando seu estilo) -->
       <div class="category-row">
+        <label for="category" class="visually-hidden">Categoria</label>
         <select id="category" class="cat" style="color: var(--text);">
           <option value="all">Todas categorias</option>
         </select>
 
+        <label for="sort" class="visually-hidden">Ordenar por</label>
         <select id="sort" class="cat" style="color: var(--text);">
           <option value="relevance">Relevância</option>
           <option value="price_asc">Menor preço</option>
